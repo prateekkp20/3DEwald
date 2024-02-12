@@ -1,0 +1,13 @@
+******************************************************************
+******************************************************************
+      Code for adsorption/desorption near a sold surface          
+                    Written by Vishal Agarwal                     
+******************************************************************
+******************************************************************
+
+
+Project Name:  Test run 
+Compute Density:  0Range of x-values considered for computing densities: 9	170
+Initial positions read from the file: POSCAR.kcl200
+Temperature of the system:		300 K
+****Printing CONTCAR****

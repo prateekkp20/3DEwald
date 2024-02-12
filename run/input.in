@@ -1,0 +1,14 @@
+Project = Test run 
+Posfile = POSCAR.kcl200
+generate_pairlist = 1
+Temp = 300
+hyb  = 1
+NMDMC = 1 
+readvel = 1 
+comdens = 0
+range = 9 170 0.01
+simann = 0
+TempRange = 100 300
+rampsize = 10 10 
+ncycle  = 100
+MIN = 0 
