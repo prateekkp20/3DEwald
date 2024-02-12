@@ -54,3 +54,5 @@ void md(double **PosIons, int natoms, float **boxcell, double **vel, double **Fo
 void simuAnn(double **PosIons, int natoms, float **boxcell, double **vel, double **ForceIons, float *mass, float dt, float TempB, float TempE, int nbondatoms, int *batom1, int *batom2, string *bondpot, double **bondpar, int nnonbondatoms, int *nbatom1, int *nbatom2, string *nonbondpot, double **nonbondpar, int **fixatoms, int rampsize, int rampstep);
 
 void CalDens(double **PosIons, int natoms, float **boxcell, int n_atomtype, int *natoms_type, double lim1, double dx, double *density);
+
+double selfe(int n_atomtype, int *natoms_type, float *chargs, float betaa);

@@ -66,6 +66,8 @@ int main(int argc, char **argv){
 	InputIn>>garbage>>garbage;
 	InputIn>>Temp;
 
+	cout<<"Temperature of the system:\t\t"<<Temp<<" K"<<endl;
+
 	InputIn>>garbage>>garbage;
 	InputIn>>hyb;
 
@@ -80,7 +82,7 @@ int main(int argc, char **argv){
 	InputIn>>garbage>>garbage;
 	InputIn>>comdens;
 
-	cout<<"Compute Density:  "<<comdens;
+	cout<<"Compute Density: "<<comdens<<"\n";
 
 	double lim1, lim2, dx;
 
@@ -161,19 +163,17 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 
-	cout<<"Temperature of the system:\t\t"<<Temp<<" K"<<endl;
-
 	getline(PosIn, garbage);
 	istringstream StrStream(garbage);
 
 	int n_atomtype=0;
-
+	// Counting through the types of the atoms present in the cell and storing in the n_atomtype variable
 	while(StrStream){
 		getline(StrStream, garbage1, ' ');
 		if(garbage1.compare("") != 0)
 			n_atomtype = n_atomtype + 1;
 	}
-
+	
 	string *atomtype;
 	atomtype=new string [n_atomtype];
 
@@ -188,29 +188,29 @@ int main(int argc, char **argv){
 			tmp = tmp + 1;
 		}
 	}
-
+	
 	int *natoms_type, natoms;  //number of atoms for each type
 
 	natoms_type=new int [n_atomtype];
 	natoms=0;
 
-	//get box cell vectors
+	//Creating 3x3 boxcell array
 	float **boxcell;
-
 	boxcell=new float * [3];
-
 	for(i = 0; i<3;i++){
 		boxcell[i]=new float [3];
 	}
 
-	getline(PosIn, garbage);
+	getline(PosIn, garbage); //read overall scaling factor
 
+	//get box cell vectors
 	for(i = 0; i<3;i++){
 		for(j=0;j<3;j++){
 			PosIn>>boxcell[i][j];
 		}
 	}
 
+	//get number of atoms for each type
 	for(i=0;i<n_atomtype;i++){
 		PosIn>>natoms_type[i];
 		natoms=natoms+natoms_type[i];
@@ -237,7 +237,6 @@ int main(int argc, char **argv){
 	}
 
 	//getting positions of each atom
-	//
 	for(i=0;i<natoms;i++){
 		PosIn>>PosIons[i][0]>>PosIons[i][1]>>PosIons[i][2];
 	}
@@ -254,20 +253,20 @@ int main(int argc, char **argv){
 	}
 
 	float *chg;
-
 	chg=new float [n_atomtype];
 
 	for(int i=0; i<n_atomtype; i++){
 		CHARGEIn>>chg[i];
-		cout<<chg[i]<<"\n";
 	}
 
 	CHARGEIn.close();
 
 	////////////////////////////////////////////////////////////
 
-	print_carcoor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "CONTCAR");
-
+	// print_carcoor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "CONTCAR");
+	float a=5.42/boxcell[0][0];
+	cout<<selfe(n_atomtype, natoms_type, chg, a)<<"\n";
+	
 	// delete dynamic variables 
 
 	for(i=0;i<3;i++){

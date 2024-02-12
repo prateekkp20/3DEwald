@@ -29,6 +29,7 @@ LIB_DIR=./lib
 OBJ_FILES=$(OBJ_DIR)/main.o \
 	  $(OBJ_DIR)/dSFMT.o \
 	  $(OBJ_DIR)/print.o \
+	  $(OBJ_DIR)/self_e.o \
 
 # Make Targets
 all:$(OBJ_FILES) output
@@ -43,6 +44,8 @@ $(OBJ_DIR)/dSFMT.o:$(SRC_DIR)/dSFMT.c
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/dSFMT.o $(INC_LIST)
 $(OBJ_DIR)/print.o:$(SRC_DIR)/print.C
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/print.o $(INC_LIST)
+$(OBJ_DIR)/self_e.o:$(SRC_DIR)/self_e.C
+	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/self_e.o $(INC_LIST)
 
 #
 #

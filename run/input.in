@@ -1,4 +1,4 @@
-Project = Test run 
+Project = Calculating Energy
 Posfile = POSCAR.kcl200
 generate_pairlist = 1
 Temp = 300
