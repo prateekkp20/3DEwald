@@ -4,7 +4,6 @@ double selfe(int n_atomtype, int *natoms_type, float *chargs, float betaa){
     double self_energy=0;
     for (int i = 0; i < n_atomtype; i++){
         self_energy+=natoms_type[i]*pow(chargs[i],2);
-        // self_energy+=natoms_type[i]*chargs[i]*chargs[i];
     }
     return self_energy*(-betaa)/sqrt(M_PI);
 }

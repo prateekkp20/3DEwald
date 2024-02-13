@@ -11,7 +11,6 @@ RAT_OUTPUT=$(RUN_DIR)/coulomb.x
 INC_LIST= -I ./inc \
 	  -I/home/prateek/eigen3/
 
-
 # Source Folders
 
 SRC_DIR=./src
@@ -30,6 +29,8 @@ OBJ_FILES=$(OBJ_DIR)/main.o \
 	  $(OBJ_DIR)/dSFMT.o \
 	  $(OBJ_DIR)/print.o \
 	  $(OBJ_DIR)/self_e.o \
+	  $(OBJ_DIR)/real_e.o \
+	  $(OBJ_DIR)/dist.o \
 
 # Make Targets
 all:$(OBJ_FILES) output
@@ -46,6 +47,10 @@ $(OBJ_DIR)/print.o:$(SRC_DIR)/print.C
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/print.o $(INC_LIST)
 $(OBJ_DIR)/self_e.o:$(SRC_DIR)/self_e.C
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/self_e.o $(INC_LIST)
+$(OBJ_DIR)/real_e.o:$(SRC_DIR)/real_e.C
+	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/real_e.o $(INC_LIST)
+$(OBJ_DIR)/dist.o:$(SRC_DIR)/dist.C
+	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/dist.o $(INC_LIST)
 
 #
 #

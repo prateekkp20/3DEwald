@@ -189,7 +189,7 @@ int main(int argc, char **argv){
 		}
 	}
 	
-	int *natoms_type, natoms;  //number of atoms for each type
+	int *natoms_type, natoms;  //number of atoms for each type and total atoms in the unit cell
 
 	natoms_type=new int [n_atomtype];
 	natoms=0;
@@ -261,11 +261,21 @@ int main(int argc, char **argv){
 
 	CHARGEIn.close();
 
-	////////////////////////////////////////////////////////////
-
+	/////////////////////// creating the charge array for each atom present in the unit cell ////////////////////////////////////
+	float *ion_charges;
+	ion_charges=new float [natoms];
+	int c=0;
+	for (int i = 0; i < n_atomtype; i++){
+		for (int j = 0; j < natoms_type[i]; j++){
+			ion_charges[c]=chg[i];
+			c++;
+		}		
+	}
+	
 	// print_carcoor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "CONTCAR");
 	float a=5.42/boxcell[0][0];
-	cout<<selfe(n_atomtype, natoms_type, chg, a)<<"\n";
+	cout<<fixed<<setprecision(5)<<"Self Energy: "<<selfe(n_atomtype, natoms_type, chg, a)<<" Kcal/mol"<<"\n";
+	cout<<fixed<<setprecision(5)<<"Real Energy: "<<real_energy(PosIons, ion_charges, natoms, a, boxcell)<<" Kcal/mol"<<"\n";
 	
 	// delete dynamic variables 
 

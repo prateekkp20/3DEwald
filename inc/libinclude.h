@@ -13,6 +13,7 @@ using namespace std;  // this makes all the functions, classes, or a variable in
 #include <Eigen/Eigenvalues>
 using namespace Eigen;
 #include <stdio.h>
-#include<string.h>
+#include <string.h>
+#include <complex.h>
 
 

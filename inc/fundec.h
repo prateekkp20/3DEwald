@@ -56,3 +56,7 @@ void simuAnn(double **PosIons, int natoms, float **boxcell, double **vel, double
 void CalDens(double **PosIons, int natoms, float **boxcell, int n_atomtype, int *natoms_type, double lim1, double dx, double *density);
 
 double selfe(int n_atomtype, int *natoms_type, float *chargs, float betaa);
+
+double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box);
+
+double dist(double **PosIons, int atom1, int atom2, float **box);
