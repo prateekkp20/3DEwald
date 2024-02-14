@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "reciprocal.C": "cpp",
+        "finalfft.C": "cpp",
+        "real_e.C": "cpp",
+        "self_e.C": "cpp"
+    }
+}

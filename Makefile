@@ -31,6 +31,7 @@ OBJ_FILES=$(OBJ_DIR)/main.o \
 	  $(OBJ_DIR)/self_e.o \
 	  $(OBJ_DIR)/real_e.o \
 	  $(OBJ_DIR)/dist.o \
+	  $(OBJ_DIR)/reciprocal.o \
 
 # Make Targets
 all:$(OBJ_FILES) output
@@ -51,6 +52,8 @@ $(OBJ_DIR)/real_e.o:$(SRC_DIR)/real_e.C
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/real_e.o $(INC_LIST)
 $(OBJ_DIR)/dist.o:$(SRC_DIR)/dist.C
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/dist.o $(INC_LIST)
+$(OBJ_DIR)/reciprocal.o:$(SRC_DIR)/reciprocal.C
+	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/reciprocal.o $(INC_LIST)
 
 #
 #
