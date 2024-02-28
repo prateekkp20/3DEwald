@@ -36,8 +36,9 @@ int main(int argc, char **argv){
 	int randnum;
 	int hyb, NMCMD, rdvel;
 	float tmp2;
+	double unitzer=(AVG*COL*CHARELEC*CHARELEC/rtoa)/1000/4.184;
 
-	//////get the name of the file for input variables, default is input.in 
+	//get the name of the file for input variables, default is input.in 
 	if(argc <2)
 		filename = "input.in";
 	else
@@ -261,7 +262,7 @@ int main(int argc, char **argv){
 
 	CHARGEIn.close();
 
-	/////////////////////// creating the charge array for each atom present in the unit cell ////////////////////////////////////
+	//creating the charge array for each atom present in the unit cell ////////////////////////////////////
 	float *ion_charges;
 	ion_charges=new float [natoms];
 	int c=0;
@@ -271,45 +272,36 @@ int main(int argc, char **argv){
 			c++;
 		}		
 	}
-	// cout<<boxcell[0][0]<<"\n";
-	// cout<<natoms<<"\n";
+
 	print_carcoor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "CONTCAR");
 	float a=5.42/boxcell[0][0];
 
 	chrono::time_point<std::chrono::system_clock> start, end;
 	start = chrono::system_clock::now();
-	double selfenergy=selfe(n_atomtype, natoms_type, chg, a);
+	double selfenergy=selfe(n_atomtype, natoms_type, chg, a)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Self Energy: "<<selfenergy<<" Kcal/mol"<<"\n";
 	end = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds = end - start;
     time_t end_time = std::chrono::system_clock::to_time_t(end);
-    // cout << "finished computation at " << std::ctime(&end_time);
-	// cout<<fixed<<setprecision(7)<<elapsed_seconds.count() << "\n";
 	cout<< "elapsed time: " << elapsed_seconds.count() << "s\n\n";
 	
 	chrono::time_point<std::chrono::system_clock> start1, end1;
 	start1 = chrono::system_clock::now();
-	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell,6);
-	// cout<<fixed<<setprecision(5)<<recienergy<<"\n";
+	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell,6)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
 	end1 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds1 = end1- start1;
     time_t end_time1 = std::chrono::system_clock::to_time_t(end1);
-    // cout << "finished computation at " << std::ctime(&end_time1);
-	// cout<< "elapsed time: " << elapsed_seconds1.count() << "s\n\n";
-	cout<<fixed<<setprecision(7)<<elapsed_seconds1.count() << "\n";
+	cout<< "elapsed time: " << elapsed_seconds1.count() << "s\n\n";
 
 	chrono::time_point<std::chrono::system_clock> start2, end2;
 	start2 = chrono::system_clock::now();
-	double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell);
+	double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
 	end2 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds2 = end2 - start2;
     time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
-    // cout << "finished computation at " << std::ctime(&end_time2);
-	// cout<< "elapsed time: " << elapsed_seconds2.count() << "s\n\n";
-	cout<<fixed<<setprecision(7)<<elapsed_seconds2.count() << "\n";
-
+	cout<< "elapsed time: " << elapsed_seconds2.count() << "s\n\n";
 
 	// delete dynamic variables 
 

@@ -1,5 +1,5 @@
 CC = /usr/bin/g++	
-DEBUGFLAGS = -Wall -g
+DEBUGFLAGS = -Wall
 OPTFLAGS = -o3
 FFTFLAGS = -lfftw3
 
