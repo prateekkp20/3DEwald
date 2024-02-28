@@ -55,7 +55,7 @@ int main(int argc, char **argv){
 	InputIn>>garbage>>garbage;
 	getline(InputIn, garbage);
 
-	cout<<"Project Name: "<<garbage<<endl;
+	// cout<<"Project Name: "<<garbage<<endl;
 
 	InputIn>>garbage>>garbage;
 	InputIn>>posfile;
@@ -66,7 +66,7 @@ int main(int argc, char **argv){
 	InputIn>>garbage>>garbage;
 	InputIn>>Temp;
 
-	cout<<"Temperature of the system:\t\t"<<Temp<<" K"<<endl;
+	// cout<<"Temperature of the system:\t\t"<<Temp<<" K"<<endl;
 
 	InputIn>>garbage>>garbage;
 	InputIn>>hyb;
@@ -82,14 +82,14 @@ int main(int argc, char **argv){
 	InputIn>>garbage>>garbage;
 	InputIn>>comdens;
 
-	cout<<"Compute Density: "<<comdens<<"\n";
+	// cout<<"Compute Density: "<<comdens<<"\n";
 
 	double lim1, lim2, dx;
 
 	InputIn>>garbage>>garbage;
 	InputIn>>lim1>>lim2>>dx;
 
-	cout<<"Range of x-values considered for computing densities: "<<lim1<<"\t"<<lim2<<endl;
+	// cout<<"Range of x-values considered for computing densities: "<<lim1<<"\t"<<lim2<<endl;
 
 	//Parameters for simulated annealing		
 	bool simann;
@@ -153,7 +153,7 @@ int main(int argc, char **argv){
 
 	EWALDIn.close();
 
-	cout<<"Initial positions read from the file: "<<posfile<<endl;
+	// cout<<"Initial positions read from the file: "<<posfile<<endl;
 
 	//////////////////////get positions from the POSCAR file//////////////////////////////////////////////////////////
 
@@ -271,43 +271,53 @@ int main(int argc, char **argv){
 			c++;
 		}		
 	}
-	
+	// cout<<boxcell[0][0]<<"\n";
+	// cout<<natoms<<"\n";
 	print_carcoor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "CONTCAR");
 	float a=5.42/boxcell[0][0];
 
 	chrono::time_point<std::chrono::system_clock> start, end;
 	start = chrono::system_clock::now();
-	cout<<fixed<<setprecision(5)<<"Self Energy: "<<selfe(n_atomtype, natoms_type, chg, a)<<" Kcal/mol"<<"\n";////
+	double selfenergy=selfe(n_atomtype, natoms_type, chg, a);
+	cout<<fixed<<setprecision(5)<<"Self Energy: "<<selfenergy<<" Kcal/mol"<<"\n";
 	end = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds = end - start;
     time_t end_time = std::chrono::system_clock::to_time_t(end);
-    cout << "finished computation at " << std::ctime(&end_time)<< "elapsed time: " << elapsed_seconds.count() << "s\n\n";
+    // cout << "finished computation at " << std::ctime(&end_time);
+	// cout<<fixed<<setprecision(7)<<elapsed_seconds.count() << "\n";
+	cout<< "elapsed time: " << elapsed_seconds.count() << "s\n\n";
 	
 	chrono::time_point<std::chrono::system_clock> start1, end1;
 	start1 = chrono::system_clock::now();
-	cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<reci_energy(PosIons, ion_charges, natoms, a, boxcell,6)<<" Kcal/mol"<<"\n";
+	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell,6);
+	// cout<<fixed<<setprecision(5)<<recienergy<<"\n";
+	cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
 	end1 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds1 = end1- start1;
     time_t end_time1 = std::chrono::system_clock::to_time_t(end1);
-    cout << "finished computation at " << std::ctime(&end_time1)<< "elapsed time: " << elapsed_seconds1.count() << "s\n\n";
+    // cout << "finished computation at " << std::ctime(&end_time1);
+	// cout<< "elapsed time: " << elapsed_seconds1.count() << "s\n\n";
+	cout<<fixed<<setprecision(7)<<elapsed_seconds1.count() << "\n";
 
 	chrono::time_point<std::chrono::system_clock> start2, end2;
 	start2 = chrono::system_clock::now();
-	cout<<fixed<<setprecision(5)<<"Real Energy: "<<real_energy(PosIons, ion_charges, natoms, a, boxcell)<<" Kcal/mol"<<"\n";
+	double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell);
+	cout<<fixed<<setprecision(5)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
 	end2 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds2 = end2 - start2;
     time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
-    cout << "finished computation at " << std::ctime(&end_time2)<< "elapsed time2: " << elapsed_seconds2.count() << "s\n\n";
+    // cout << "finished computation at " << std::ctime(&end_time2);
+	// cout<< "elapsed time: " << elapsed_seconds2.count() << "s\n\n";
+	cout<<fixed<<setprecision(7)<<elapsed_seconds2.count() << "\n";
 
-	
+
 	// delete dynamic variables 
 
 	for(i=0;i<3;i++){
 		delete [] boxcell[i]; 
 	}
 
-	for(i=0;i<natoms;i++)
-	{
+	for(i=0;i<natoms;i++){
 		delete [] PosIons[i];
 		delete [] ForceIons[i];
 		delete [] vel[i];
