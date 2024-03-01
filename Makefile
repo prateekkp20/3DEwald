@@ -1,6 +1,6 @@
 CC = /usr/bin/g++	
 DEBUGFLAGS = -Wall
-OPTFLAGS = -o3
+OPTFLAGS = -o3 -fopenmp
 FFTFLAGS = -lfftw3
 
 RUN_DIR=./run
