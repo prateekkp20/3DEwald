@@ -17,5 +17,6 @@ using namespace Eigen;
 #include <complex.h>
 #include <chrono>
 #include <ctime>
+#include <omp.h>
 
 
