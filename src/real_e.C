@@ -79,7 +79,7 @@
 //* For reduction construct
 double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
     double real_energy=0;
-    #pragma omp parallel for reduction(+: real_energy)
+    #pragma omp parallel for schedule(runtime) reduction(+: real_energy)
         for (int i = 0; i < natoms; i++){
             for (int j = 0; j < i; j++){
                 if(i!=j){
