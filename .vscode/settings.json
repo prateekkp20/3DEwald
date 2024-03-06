@@ -3,6 +3,9 @@
         "reciprocal.C": "cpp",
         "finalfft.C": "cpp",
         "real_e.C": "cpp",
-        "self_e.C": "cpp"
-    }
+        "self_e.C": "cpp",
+        "stdio.h": "c",
+        "complex": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "disabled",
 }
