@@ -7,4 +7,5 @@
 #define CHARELEC 1.60217662e-19                    // charge of electron
 #define Ke    8.9875517923e+9                      //Coulomb constant N-m2C(-sq)
 #define rtoa  1e-10                                //Angstrom conversion
+#define NUM_THREADS 15
 

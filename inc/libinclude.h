@@ -18,5 +18,6 @@ using namespace Eigen;
 #include <chrono>
 #include <ctime>
 #include <omp.h>
+#include <thread>
 
 
