@@ -1,5 +1,5 @@
 Project = Calculating Energy
-Posfile = big/POSCAR.5
+Posfile = big/POSCAR.1
 generate_pairlist = 1
 Temp = 300
 hyb  = 1
