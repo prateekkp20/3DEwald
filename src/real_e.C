@@ -1,15 +1,15 @@
 #include "libinclude.h"
 #include "fundec.h"
 #include "omp.h"
-#define NUM_THREADS 8
+#include "const.h"
 #define PAD 8
 
 //* false sharing and padding
 // double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
 //     int nthreads;
 //     double sum[NUM_THREADS][PAD],real_energy=0;
-//     omp_set_num_threads(NUM_THREADS);
-
+////     omp_set_num_threads(NUM_THREADS);
+//     omp_set_num_threads(thread::hardware_concurrency());
 //     #pragma omp parallel
 //     {
 //         int id, nthrds;
@@ -33,33 +33,33 @@
 // }
 
 //* synchromization construct critical
-double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
-    int nthreads;
-    double real_energy=0;
-    omp_set_num_threads(NUM_THREADS);
+// double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
+//     int nthreads;
+//     double real_energy=0;
+//    // omp_set_num_threads(NUM_THREADS);
+//     omp_set_num_threads(thread::hardware_concurrency());
+//     #pragma omp parallel
+//     {
+//         int i, id, nthrds;
+//         double sum;
 
-    #pragma omp parallel
-    {
-        int i, id, nthrds;
-        double sum;
+//         id = omp_get_thread_num();
+//         nthrds = omp_get_num_threads();
+//         if(id==0) nthreads=nthrds;
 
-        id = omp_get_thread_num();
-        nthrds = omp_get_num_threads();
-        if(id==0) nthreads=nthrds;
-
-        for (i = id,sum=0; i < natoms; i+=nthrds){
-            for (int j = 0; j < i; j++){
-                if(i!=j){
-                    double modR=dist(PosIons,i,j,box); // calculating the minimum distance between the given i and j atoms
-                    sum+=(ion_charges[i]*ion_charges[j]*erfc(betaa*modR))/modR;
-                }
-            }
-        }
-        #pragma omp critical // this section stops the all other threads and first performs this action
-            real_energy+=sum;
-    }
-    return real_energy;
-}
+//         for (i = id,sum=0; i < natoms; i+=nthrds){
+//             for (int j = 0; j < i; j++){
+//                 if(i!=j){
+//                     double modR=dist(PosIons,i,j,box); // calculating the minimum distance between the given i and j atoms
+//                     sum+=(ion_charges[i]*ion_charges[j]*erfc(betaa*modR))/modR;
+//                 }
+//             }
+//         }
+//         #pragma omp critical // this section stops the all other threads and first performs this action
+//             real_energy+=sum;
+//     }
+//     return real_energy;
+// }
 
 //*Original loop, no parallelization
 // double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
@@ -77,17 +77,19 @@ double real_energy(double **PosIons, float *ion_charges, int natoms, double beta
 // }
 
 //* For reduction construct
-// double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
-//     double real_energy=0;
-//     #pragma omp parallel for schedule(runtime) reduction(+: real_energy)
-//         for (int i = 0; i < natoms; i++){
-//             for (int j = 0; j < i; j++){
-//                 if(i!=j){
-//                     double modR=dist(PosIons,i,j,box);
-//                     real_energy+=(ion_charges[i]*ion_charges[j]*erfc(betaa*modR))/modR;
-//                 }
-//             }
-//         }
+double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
+    double real_energy=0;
+    // omp_set_num_threads(NUM_THREADS);
+    omp_set_num_threads(thread::hardware_concurrency());
+    #pragma omp parallel for schedule(runtime) reduction(+: real_energy)
+        for (int i = 0; i < natoms; i++){
+            for (int j = 0; j < i; j++){
+                if(i!=j){
+                    double modR=dist(PosIons,i,j,box);
+                    real_energy+=(ion_charges[i]*ion_charges[j]*erfc(betaa*modR))/modR;
+                }
+            }
+        }
     
-//     return real_energy;
-// }
+    return real_energy;
+}
