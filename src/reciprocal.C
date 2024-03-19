@@ -3,15 +3,17 @@
 #include "const.h"
 #include "omp.h"
 
+//Uncomment only one of them
 #define NAIVE 1
 #define REDUCTION_REAL_IMG 2
 #define REDUCTION_KVECTOR 3
 #define SYNCHRONIZATION_CONSTRUCT 4
 
 // Define the value of reciprocal based on the desired method
-#define reciprocal SYNCHRONIZATION_CONSTRUCT 
+// #define reciprocal SYNCHRONIZATION_CONSTRUCT 
 
-#if reciprocal == NAIVE
+#if defined NAIVE
+// #if reciprocal == NAIVE
 //*Original loop, no parallelization
 double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K){
     double reci_energy=0;
@@ -37,7 +39,8 @@ double reci_energy(double **PosIons, float *ion_charges, int natoms, double beta
     return reci_energy;
 }
 
-#elif reciprocal == REDUCTION_REAL_IMG
+// #elif reciprocal == REDUCTION_REAL_IMG
+#elif defined REDUCTION_REAL_IMG
 //* For reduction construct on making the separate loops for real and imaginary part*/
 double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K){
     double reci_energy=0;
@@ -75,7 +78,8 @@ double reci_energy(double **PosIons, float *ion_charges, int natoms, double beta
     return reci_energy;
 }
 
-#elif reciprocal == REDUCTION_KVECTOR
+// #elif reciprocal == REDUCTION_KVECTOR
+#elif defined REDUCTION_KVECTOR
 //* For reduction construct on K vector*/
 /*There is no workaround for the complex reduction, we have to do the ugly work*/
 double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K){
@@ -105,7 +109,8 @@ double reci_energy(double **PosIons, float *ion_charges, int natoms, double beta
     return reci_energy;
 }
 
-#elif reciprocal == SYNCHRONIZATION_CONSTRUCT
+// #elif reciprocal == SYNCHRONIZATION_CONSTRUCT
+#elif defined SYNCHRONIZATION_CONSTRUCT
 //* synchronization construct critical
 double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K){
     int nthreads;

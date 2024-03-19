@@ -4,16 +4,18 @@
 #include "const.h"
 
 #define PAD 8
-#define NAIVE 1
-#define FALSE_SHARING_AND_PADDING 2
-#define REDUCTION 3
+//Uncomment only one of them
+// #define NAIVE 1
+// #define FALSE_SHARING_AND_PADDING 2
+// #define REDUCTION 3
 #define SYNCHRONIZATION_CONSTRUCT 4
 
-#define REAL REDUCTION 
+// #define REAL REDUCTION 
 
 
 //* false sharing and padding
-#if REAL == FALSE_SHARING_AND_PADDING
+#if defined FALSE_SHARING_AND_PADDING
+// #if REAL == FALSE_SHARING_AND_PADDING
     double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
         int nthreads;
         double sum[NUM_THREADS][PAD],real_energy=0;
@@ -42,7 +44,8 @@
     }
 
 //* synchromization construct critical
-#elif REAL == SYNCHRONIZATION_CONSTRUCT
+#elif defined SYNCHRONIZATION_CONSTRUCT
+// #elif REAL == SYNCHRONIZATION_CONSTRUCT
     double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
         int nthreads;
         double real_energy=0;
@@ -72,7 +75,8 @@
     }
 
 //*Original loop, no parallelization
-#elif REAL == NAIVE
+#elif defined NAIVE
+// #elif REAL == NAIVE
     double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
         double real_energy=0;
         for (int i = 0; i < natoms; i++){
@@ -88,7 +92,8 @@
     }
 
 //* For reduction construct
-#elif REAL == REDUCTION
+#elif defined REDUCTION
+// #elif REAL == REDUCTION
     double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
         double real_energy=0;
         // omp_set_num_threads(NUM_THREADS);
@@ -108,5 +113,5 @@
 
 #else
     #error "Please define the method of parallelization"
-    
+
 #endif
