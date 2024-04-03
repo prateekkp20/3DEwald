@@ -1,12 +1,12 @@
 #include "libinclude.h"
-#include "fundec.h"
+// #include "fundec.h"
 #include "const.h"
-#include "omp.h"
+// #include "omp.h"
 
 //Uncomment only one of them
-#define NAIVE 1
-#define REDUCTION_REAL_IMG 2
-#define REDUCTION_KVECTOR 3
+// #define NAIVE 1
+// #define REDUCTION_REAL_IMG 2
+// #define REDUCTION_KVECTOR 3
 #define SYNCHRONIZATION_CONSTRUCT 4
 
 
@@ -81,7 +81,8 @@
         double reci_energy=0;
         // omp_set_num_threads(NUM_THREADS);
         omp_set_num_threads(thread::hardware_concurrency());
-        #pragma omp parallel for schedule(runtime) reduction(+: reci_energy)
+        #pragma omp parallel for schedule(runtime) reduction(+: reci_energy) collapse(3)
+        // #pragma omp parallel for schedule(runtime) reduction(+: reci_energy)
         for (int kx = -K; kx < K+1; kx++){
             for (int ky = -K; ky < K+1; ky++){
                 for (int kz = -K; kz < K+1; kz++){
@@ -89,6 +90,7 @@
                     complex<double> sg=0;
                     complex<double> t(0,1);
                     double G[3]={2*M_PI*kx/box[0][0], 2*M_PI*ky/box[1][1], 2*M_PI*kz/box[2][2]};
+                        #pragma omp SIMD
                         for (int  i = 0; i < natoms; i++){
                             double G_dot_r=G[0]*PosIons[i][0]+G[1]*PosIons[i][1]+G[2]*PosIons[i][2];
                             complex<double> charge(ion_charges[i],0.0);
@@ -109,8 +111,9 @@
     double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K){
         int nthreads;
         double reci_energy=0;
-        // omp_set_num_threads(NUM_THREADS);
-        omp_set_num_threads(thread::hardware_concurrency());
+        omp_set_num_threads(NUM_THREADS);
+        // omp_set_num_threads(thread::hardware_concurrency());
+        // #pragma omp SIMD
         for (int kx = -K; kx < K+1; kx++){
             for (int ky = -K; ky < K+1; ky++){
                 for (int kz = -K; kz < K+1; kz++){

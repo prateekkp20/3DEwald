@@ -1,18 +1,18 @@
 #include "libinclude.h"
 #include "fundec.h"
-#include "omp.h"
+// #include "omp.h"
 #include "const.h"
 
 #define PAD 8
 //Uncomment only one of them
 // #define NAIVE 1
 // #define FALSE_SHARING_AND_PADDING 2
-// #define REDUCTION 3
-#define SYNCHRONIZATION_CONSTRUCT 4
+#define REDUCTION 3
+// #define SYNCHRONIZATION_CONSTRUCT 4
 
 
-//* false sharing and padding
 #if defined FALSE_SHARING_AND_PADDING
+//* false sharing and padding
     double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
         int nthreads;
         double sum[NUM_THREADS][PAD],real_energy=0;
@@ -40,8 +40,8 @@
         return real_energy;
     }
 
-//* synchromization construct critical
 #elif defined SYNCHRONIZATION_CONSTRUCT
+//* synchromization construct critical
     double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
         int nthreads;
         double real_energy=0;
@@ -70,8 +70,8 @@
         return real_energy;
     }
 
-//*Original loop, no parallelization
 #elif defined NAIVE
+//*Original loop, no parallelization
     double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
         double real_energy=0;
         for (int i = 0; i < natoms; i++){
@@ -86,14 +86,15 @@
         return real_energy;
     }
 
-//* For reduction construct
 #elif defined REDUCTION
+//* For reduction construct
     double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box){
         double real_energy=0;
-        // omp_set_num_threads(NUM_THREADS);
-        omp_set_num_threads(thread::hardware_concurrency());
+        omp_set_num_threads(NUM_THREADS);
+        // omp_set_num_threads(thread::hardware_concurrency());
         #pragma omp parallel for schedule(runtime) reduction(+: real_energy)
             for (int i = 0; i < natoms; i++){
+                // #pragma omp SIMD
                 for (int j = 0; j < i; j++){
                     if(i!=j){
                         double modR=dist(PosIons,i,j,box);
