@@ -1,3 +1,4 @@
+// g++ Bspline_pm.cpp -o Bspline_pm -lfftw3 -lm -fopenmp && ./Bspline_pm
 #include<cmath>
 #include<vector>
 #include<stdio.h>
@@ -9,6 +10,8 @@
 #include <cmath>
 #include <iomanip>
 #include <complex>
+#include "omp.h"
+#include <thread>
 
 #define ld long double
 #define REAL 0
@@ -172,7 +175,7 @@ complex<ld> B_FQ(int m1,int m2, int m3,vector<vector<ld>> u,vector<int> charges,
     ld two_pi_m2=2*pi*m2;
     ld two_pi_m3=2*pi*m3;
     const complex<ld> t(0.0, 1.0);
-
+    
     for (int i = 0; i < charges.size(); i++){
         // for X direction
         complex<ld> x_dir;
@@ -215,7 +218,7 @@ complex<ld> B_FQ(int m1,int m2, int m3,vector<vector<ld>> u,vector<int> charges,
             xyz*=exp((two_pi_m3*k3)/K[2]*t);
             z_dir+=xyz;
         }
-
+        
         const complex<ld> charge(charges[i], 0.0);
         B_FQ+=x_dir*y_dir*z_dir*charge;
         // cout<<B_FQ<<"\n";
@@ -232,13 +235,13 @@ ld pm_reciprocal_energy(Atoms atomdata){
     ld beta=5.42/L1;
     vector<ld> L = { L1, L2, L3 };
     vector<int> K={20,20,20}; //Number of grid points in each direction
-    int n=3; //order of b-spline interpolation
+    int n=7; //order of b-spline interpolation
     int n_max=1;
     int total_atoms=atomdata.charges.size();
     vector<vector<ld>> u;
     u.resize(total_atoms, vector<ld>(3));
-    vector<int> M={1,1,1};
-    // vector<int> M={6,6,6};
+    // vector<int> M={1,1,1};
+    vector<int> M={6,6,6};
     for (int i = 0; i < total_atoms; i++){
         for (int j = 0; j < 3; j++){
             u[i][j]=K[j]*dotProduct(atomdata.coordinates[i],atomdata.reciprocal_lattice_vectors[j]);
@@ -247,6 +250,9 @@ ld pm_reciprocal_energy(Atoms atomdata){
     ld energy = 0;
     ld pi2=pi*pi;
     ld beta2=beta*beta;
+    omp_set_num_threads(thread::hardware_concurrency());
+    // #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(3)
+    #pragma omp parallel for schedule(runtime) reduction(+: energy) 
     for (int i = -M[0]; i < M[0]+1; i++){
         for (int j = -M[1]; j < M[1]+1; j++){
             for (int k = -M[2]; k < M[2]+1; k++){
@@ -254,7 +260,7 @@ ld pm_reciprocal_energy(Atoms atomdata){
                 vector<ld> m = {i*atomdata.reciprocal_lattice_vectors[0][0]+j*atomdata.reciprocal_lattice_vectors[1][0]+k*atomdata.reciprocal_lattice_vectors[2][0],i*atomdata.reciprocal_lattice_vectors[0][1]+j*atomdata.reciprocal_lattice_vectors[1][1]+k*atomdata.reciprocal_lattice_vectors[2][1],i*atomdata.reciprocal_lattice_vectors[0][2]+j*atomdata.reciprocal_lattice_vectors[1][2]+k*atomdata.reciprocal_lattice_vectors[2][2]};
                 ld m2=dotProduct(m,m);
                 energy += exp((-pi2*m2)/(beta2))*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))*norm(B_FQ(i,j,k,u,atomdata.charges,n_max,n,K))/m2;
-                cout<<i<<" "<<j<<" "<<k<<" "<<norm(B_FQ(i,j,k,u,atomdata.charges,n_max,n,K))<<"\n";
+                // cout<<i<<" "<<j<<" "<<k<<" "<<norm(B_FQ(i,j,k,u,atomdata.charges,n_max,n,K))<<"\n";
                 // energy += exp((-pi*pi*m2)/(beta*beta))*norm(B_FQ(i,j,k,u,atomdata.charges,n_max,n,K))/m2;
                 // cout<<"energy"<<"\n";
             }

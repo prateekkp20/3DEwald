@@ -263,8 +263,8 @@ ld pm_reciprocal_energy(Atoms atomdata){
 
     // Calculating the fractional coordinates
     ld u[total_atoms][3];
-    vector<int> M={1,1,1};
-    // vector<int> M={6,6,6};
+    // vector<int> M={1,1,1};
+    vector<int> M={6,6,6};
     for (int i = 0; i < total_atoms; i++){
         for (int j = 0; j < 3; j++){
             u[i][j]=K[j]*dotProduct(atomdata.coordinates[i],atomdata.reciprocal_lattice_vectors[j]);
@@ -345,21 +345,30 @@ ld pm_reciprocal_energy(Atoms atomdata){
     ld energy = 0;
     ld constant=(pi*pi)/(beta*beta);
     int ii,jj,kk;
+    // for (int i = 0; i < K[0]; i++){
     for (int i = -M[0]; i < M[0]+1; i++){
-        if(i<0) ii=M[0]+i;
+        // if (i==K[0]/2)continue;
+        if(i<0) ii=K[0]+i;
         else  ii=i;
-        for (int j = -M[1]; j < M[1]+1; j++){
-            if(j<0) jj=M[1]+j;
+        // for (int j = 0; j < K[1]; j++){
+        for (int j = -M[1]; j < M[1]; j++){
+            if(j<0) jj=K[1]+j;
             else  jj=j;
-            for (int k = -M[2]; k < M[2]+1; k++){
-                if(k<0) kk=M[2]+k;
+            // if (j==K[1]/2)continue;
+            for (int k = -M[2]; k < K[2]; k++){
+            // for (int k = -M[2]; k < M[2]; k++){
+                if(k<0) kk=K[2]+k;
                 else  kk=k;
+                // if (k==K[2]/2)continue;
                 if(i==0&&j==0&&k==0)continue;
                 vector<ld> m = {i*atomdata.reciprocal_lattice_vectors[0][0]+j*atomdata.reciprocal_lattice_vectors[1][0]+k*atomdata.reciprocal_lattice_vectors[2][0],i*atomdata.reciprocal_lattice_vectors[0][1]+j*atomdata.reciprocal_lattice_vectors[1][1]+k*atomdata.reciprocal_lattice_vectors[2][1],i*atomdata.reciprocal_lattice_vectors[0][2]+j*atomdata.reciprocal_lattice_vectors[1][2]+k*atomdata.reciprocal_lattice_vectors[2][2]};
                 ld m2=dotProduct(m,m);
-                ld norm_FQ=out[ii * (K[2] * K[1]) + jj * K[2] + kk][REAL]*out[ii * (K[2] * K[1]) + jj * K[2] + kk][REAL]+out[ii * (K[2] * K[1]) + jj * K[2] + kk][IMAG]*out[ii * (K[2] * K[1]) + jj * K[2] + kk][IMAG];
+                int temp=ii * (K[2] * K[0]) + jj * K[2] + kk;
+                ld norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
+                // ld norm_FQ=out[ii * (K[2] * K[0]) + jj * K[2] + kk][REAL]*out[ii * (K[2] * K[0]) + jj * K[2] + kk][REAL]+out[ii * (K[2] * K[0]) + jj * K[2] + kk][IMAG]*out[ii * (K[2] * K[0]) + jj * K[2] + kk][IMAG];
+                // ld norm_FQ=out[ii * (K[2] * K[1]) + jj * K[2] + kk][REAL]*out[ii * (K[2] * K[1]) + jj * K[2] + kk][REAL]+out[ii * (K[2] * K[1]) + jj * K[2] + kk][IMAG]*out[ii * (K[2] * K[1]) + jj * K[2] + kk][IMAG];
                 energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))/m2; //have to multiply the factor of F(Q)
-                cout<<i<<" "<<j<<" "<<k<<" "<<norm_FQ<<"\n";
+                // cout<<i<<" "<<j<<" "<<k<<" "<<norm_FQ<<"\n";
                 // cout<<i<<" "<<j<<" "<<k<<" ("<<out[ii * (K[2] * K[1]) + jj * K[2] + kk][REAL]<<","<<out[ii * (K[2] * K[1]) + jj * K[2] + kk][IMAG] <<")\n";
                 // cout<<i<<" "<<j<<" "<<k<<" ("<<out[ii * (K[2] * K[1]) + jj * K[2] + kk][REAL]<<","<<out[ii * (K[2] * K[1]) + jj * K[2] + kk][IMAG] <<")\n";
                 // energy += exp((-pi2*m2)/(beta2))*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))/m2;
@@ -379,7 +388,8 @@ ld error(ld pm, ld ewald){
 int main(){
     // clock_t start, end;
     // string in="/home/prateek/Documents/Prateek/3DEWALD/run/fifty/POSCAR.7";
-    string in="/home/prateek/Documents/Prateek/3d_ewald/lampss_files/3D EWALD/random_generator/20atoms";
+    string in="/home/prateek/Documents/Prateek/3DEwald/run/bench/bench1.POSCAR";
+    // string in="/home/prateek/Documents/Prateek/3d_ewald/lampss_files/3D EWALD/random_generator/20atoms";
     Atoms atomData = read_file(in);
     // printAtomData(atomData);
     // start=clock();
@@ -394,7 +404,8 @@ int main(){
     cout<<fixed<<setprecision(8)<<"Elapsed time: " <<elapsed_seconds.count()<<" sec\n";
     // end=clock();
     cout <<fixed<<setprecision(5)<<"Energy: "<<energy<<" kcal/mol"<<"\n" ;
-    cout << fixed << setprecision(15) <<"Error: "<<error(energy,5.330360132800516e+02)<<"\n";
+    // cout << fixed << setprecision(15) <<"Error: "<<error(energy,5.330360132800516e+02)<<"\n";
+    cout << fixed << setprecision(15) <<"Error: "<<error(energy,3.01571)<<"\n";
     // ld time_taken= double(end-start)/double(CLOCKS_PER_SEC);
     // cout << fixed << setprecision(10)<<"Time Taken: "<<time_taken<<" Sec"<<"\n" ;
     return 0;
