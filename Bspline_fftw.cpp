@@ -1,4 +1,4 @@
-// g++ Bspline_pm_copy_2.cpp -o Bspline_pm_copy_2 -lfftw3 -lm && ./Bspline_pm_copy_2
+// g++ Bspline_fftw.cpp -o Bspline_fftw -lfftw3 -lm && ./Bspline_fftw
 #include<cmath>
 #include<vector>
 #include<stdio.h>
@@ -41,7 +41,6 @@ ld M_n(ld u, long int n){
             return (u*M_n(u,n-1)/(n-1))+((n-u)*M_n(u-1,n-1)/(n-1));
         }
     }
-    // return 0;
 }
 
 struct Atoms {
@@ -170,84 +169,6 @@ complex<ld>B(int m,int n,int K){
     return bi_mi;
 }
 
-// complex<ld> B_FQ(int m1,int m2, int m3,vector<vector<ld>> u,vector<int> charges,int n_max, int n,vector<int> K){
-//     complex<ld> B_FQ;
-
-// 	fftw_complex *in;   //input variable using standard fftw syntax
-// 	fftw_complex *out;	// output variable
-
-//     ld two_pi_m1=2*pi*m1;
-//     ld two_pi_m2=2*pi*m2;
-//     ld two_pi_m3=2*pi*m3;
-//     const complex<ld> t(0.0, 1.0);
-
-// 	in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K[0]*K[1]*K[2]);
-// 	out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K[0]*K[1]*K[2]);
-// 	fftw_plan p;
-// 	p = fftw_plan_dft_3d(K[0],K[1],K[2], in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-
-//     vector<vector<ld>> x_direc;
-//     x_direc.resize(charges.size(), vector<ld>(K[0]));
-//     vector<vector<ld>> y_direc;
-//     y_direc.resize(charges.size(), vector<ld>(K[1]));
-//     vector<vector<ld>> z_direc;
-//     z_direc.resize(charges.size(), vector<ld>(K[2]));
-
-//     for (int i = 0; i < charges.size(); i++){
-//         // for X direction
-//         for (int k1 = 0;  k1 < K[0]; k1++){
-//             x_direc[i][k1]=0;
-//             for (int n1 = -n_max; n1 < n_max+1; n1++){
-//                             x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K[0],n);
-//             }
-//         }
-
-//         // for Y direction
-//         for (int k2 = 0;  k2 < K[1]; k2++){
-//             y_direc[i][k2]=0;
-//             for (int n2 = -n_max; n2 < n_max+1; n2++){
-//                             y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K[1],n);
-//             }
-//         }
-
-//         // for Z direction
-//         for (int k3 = 0;  k3 < K[2]; k3++){
-//             z_direc[i][k3]=0;
-//             for (int n3 = -n_max; n3 < n_max+1; n3++){
-//                             z_direc[i][k3]+=M_n(u[i][2]-k3-n3*K[2],n);
-//             }
-//         }
-//         // initializing the "in" vector with zero values
-//     	for (int tx = 0; tx < K[0]; tx++){
-// 		    for (int ty = 0; ty < K[1]; ty++){
-// 			    for (int tz = 0; tz < K[2]; tz++){
-// 				    in[tx * (K[2] * K[1]) + ty * K[2] + tz][0] = 0.0;
-// 			    }
-// 		    }
-// 	    }
-
-// 	    for (int j = 0; j < charges.size(); j++){
-// 		    for (int tx = 0; tx < K[0]; tx++){
-// 			    if (x_direc[j][tx] == 0)continue;
-
-// 			    for (int ty = 0; ty < K[1]; ty++){
-// 				    if (y_direc[j][ty] == 0)continue;
-
-// 				    for (int tz = 0; tz < K[2]; tz++){
-// 					    if (z_direc[j][tz] == 0)continue;
-
-// 					    in[tx * (K[2] * K[1]) + ty * K[2] + tz][0] += charges[j] * x_direc[j][tx] * y_direc[j][ty] * z_direc[j][tz];
-// 				    }
-// 			    }
-// 		    }
-// 	    }
-//     }
-
-//     fftw_execute(p);
-// 	fftw_destroy_plan(p);
-// 	fftw_cleanup();
-//     return B_FQ;
-// }
 
 ld pm_reciprocal_energy(Atoms atomdata){
     const ld pi = acos(-1.0);
@@ -263,7 +184,6 @@ ld pm_reciprocal_energy(Atoms atomdata){
 
     // Calculating the fractional coordinates
     ld u[total_atoms][3];
-    // vector<int> M={1,1,1};
     vector<int> M={6,6,6};
     for (int i = 0; i < total_atoms; i++){
         for (int j = 0; j < 3; j++){
@@ -345,34 +265,21 @@ ld pm_reciprocal_energy(Atoms atomdata){
     ld energy = 0;
     ld constant=(pi*pi)/(beta*beta);
     int ii,jj,kk;
-    // for (int i = 0; i < K[0]; i++){
     for (int i = -M[0]; i < M[0]+1; i++){
-        // if (i==K[0]/2)continue;
         if(i<0) ii=K[0]+i;
         else  ii=i;
-        // for (int j = 0; j < K[1]; j++){
         for (int j = -M[1]; j < M[1]; j++){
             if(j<0) jj=K[1]+j;
             else  jj=j;
-            // if (j==K[1]/2)continue;
             for (int k = -M[2]; k < K[2]; k++){
-            // for (int k = -M[2]; k < M[2]; k++){
                 if(k<0) kk=K[2]+k;
                 else  kk=k;
-                // if (k==K[2]/2)continue;
                 if(i==0&&j==0&&k==0)continue;
                 vector<ld> m = {i*atomdata.reciprocal_lattice_vectors[0][0]+j*atomdata.reciprocal_lattice_vectors[1][0]+k*atomdata.reciprocal_lattice_vectors[2][0],i*atomdata.reciprocal_lattice_vectors[0][1]+j*atomdata.reciprocal_lattice_vectors[1][1]+k*atomdata.reciprocal_lattice_vectors[2][1],i*atomdata.reciprocal_lattice_vectors[0][2]+j*atomdata.reciprocal_lattice_vectors[1][2]+k*atomdata.reciprocal_lattice_vectors[2][2]};
                 ld m2=dotProduct(m,m);
                 int temp=ii * (K[2] * K[0]) + jj * K[2] + kk;
                 ld norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
-                // ld norm_FQ=out[ii * (K[2] * K[0]) + jj * K[2] + kk][REAL]*out[ii * (K[2] * K[0]) + jj * K[2] + kk][REAL]+out[ii * (K[2] * K[0]) + jj * K[2] + kk][IMAG]*out[ii * (K[2] * K[0]) + jj * K[2] + kk][IMAG];
-                // ld norm_FQ=out[ii * (K[2] * K[1]) + jj * K[2] + kk][REAL]*out[ii * (K[2] * K[1]) + jj * K[2] + kk][REAL]+out[ii * (K[2] * K[1]) + jj * K[2] + kk][IMAG]*out[ii * (K[2] * K[1]) + jj * K[2] + kk][IMAG];
                 energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))/m2; //have to multiply the factor of F(Q)
-                // cout<<i<<" "<<j<<" "<<k<<" "<<norm_FQ<<"\n";
-                // cout<<i<<" "<<j<<" "<<k<<" ("<<out[ii * (K[2] * K[1]) + jj * K[2] + kk][REAL]<<","<<out[ii * (K[2] * K[1]) + jj * K[2] + kk][IMAG] <<")\n";
-                // cout<<i<<" "<<j<<" "<<k<<" ("<<out[ii * (K[2] * K[1]) + jj * K[2] + kk][REAL]<<","<<out[ii * (K[2] * K[1]) + jj * K[2] + kk][IMAG] <<")\n";
-                // energy += exp((-pi2*m2)/(beta2))*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))/m2;
-                // energy += exp((-pi2*m2)/(beta2))*norm(B_FQ(i,j,k,u,atomdata.charges,n_max,n,K))/m2;
             }
         }
     }
@@ -392,7 +299,6 @@ int main(){
     // string in="/home/prateek/Documents/Prateek/3d_ewald/lampss_files/3D EWALD/random_generator/20atoms";
     Atoms atomData = read_file(in);
     // printAtomData(atomData);
-    // start=clock();
     chrono::time_point<std::chrono::system_clock> start, end;
     start = chrono::system_clock::now();
 
@@ -402,39 +308,8 @@ int main(){
     chrono::duration<double> elapsed_seconds = end - start;
     time_t end_time = std::chrono::system_clock::to_time_t(end);
     cout<<fixed<<setprecision(8)<<"Elapsed time: " <<elapsed_seconds.count()<<" sec\n";
-    // end=clock();
     cout <<fixed<<setprecision(5)<<"Energy: "<<energy<<" kcal/mol"<<"\n" ;
     // cout << fixed << setprecision(15) <<"Error: "<<error(energy,5.330360132800516e+02)<<"\n";
     cout << fixed << setprecision(15) <<"Error: "<<error(energy,3.01571)<<"\n";
-    // ld time_taken= double(end-start)/double(CLOCKS_PER_SEC);
-    // cout << fixed << setprecision(10)<<"Time Taken: "<<time_taken<<" Sec"<<"\n" ;
     return 0;
 }
-
-// int main(){
-//     ofstream filer("Bspline4.txt");
-//     if (!filer.is_open()) {
-//         cerr << "Error opening file!" << endl;
-//         return 1; // Return an error code
-//     }
-//     vector<ld> EWALD={1.404731514289580e+03,8.354139318895441e+02,6.662950659666857e+02,4.273425704945629e+02,2.773380683582925e+02,3.541768938144129e+02};
-//     for (int interator = 0; interator < 6; interator+=1){
-//         clock_t start, end;
-//         cout<<"go"<<interator<<"\n";
-//         string in="3d_ewald\\lampss_files\\3D EWALD\\random_generator\\cell";
-//         Atoms atomData = read_file(in+to_string(10+5*interator));
-//         // filer <<"cell"<<10+5*interator<<"\n";
-//         start=clock();
-//         ld energy = pm_reciprocal_energy(atomData);
-//         end=clock();
-//         filer << fixed << setprecision(8) <<"Energy: "<<energy<<" kcal/mol"<<"\n";
-//         // filer <<setprecision(15)<<error(energy,EWALD[interator])<<"\n";*
-//         filer <<"Error: "<<setprecision(15)<<error(energy,EWALD[interator])<<"\n";
-//         ld time_taken = double(end-start)/double(CLOCKS_PER_SEC);
-//         // filer << fixed <<setprecision(2)<<time_taken<<endl;
-//         filer << fixed <<"Time Taken: "<<setprecision(2)<<time_taken<<" Sec\n"<<endl;
-//         cout<<"done"<<interator<<"\n";
-//     }
-//     filer.close();
-//     return 0;
-// }
