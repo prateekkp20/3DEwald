@@ -10,8 +10,8 @@ using namespace std;  // this makes all the functions, classes, or a variable in
 #include <cmath>
 #include <string>
 #include <sstream>  //string streaming, used for manipulating strings!!!
-#include <Eigen/Eigenvalues>
-using namespace Eigen;
+// #include <Eigen/Eigenvalues>
+// using namespace Eigen;
 #include <stdio.h>
 #include <string.h>
 #include <complex.h>
@@ -19,5 +19,7 @@ using namespace Eigen;
 #include <ctime>
 #include <omp.h>
 #include <thread>
+#include<fftw3.h>
+
 
 

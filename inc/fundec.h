@@ -62,3 +62,15 @@ double real_energy(double **PosIons, float *ion_charges, int natoms, double beta
 double dist(double **PosIons, int atom1, int atom2, float **box);
 
 double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K);
+
+void scalarProductMat(double **mat, double k);
+
+double M_n(double u, int n);
+
+complex<double> B(int m, int n, int K);
+
+double dotProduct(double *v1, double *v2);
+
+void crossProduct(float *v_A, float *v_B, double *out);
+
+double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K, int M, int n);

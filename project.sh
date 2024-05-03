@@ -81,30 +81,39 @@
 
 ## code for multiple threads for different settings with same size and same number of atoms
 
-for cell in {1..10}
-do
-    sed -i "s/Posfile = same_same\/POSCAR\.$((cell-1))/Posfile = same_same\/POSCAR\.$cell/g" run/input.in
-    cd run/
-    echo "# of Threads,,Reciprocal,,Real" > same_poscar$cell\file.csv
-    cd ..
-    for i in {2..25}
-    do
-        sed -i "s/\#define NUM_THREADS $((i-1))/\#define NUM_THREADS $i/g" inc/const.h
-        make clean > output.txt
-        make >> output.txt
+# for cell in {1..10}
+# do
+    # sed -i "s/Posfile = same_same\/POSCAR\.$((cell-1))/Posfile = same_same\/POSCAR\.$cell/g" run/input.in
+#     cd run/
+#     echo "# of Threads,,Reciprocal,,Real" > same_poscar$cell\file.csv
+#     cd ..
+#     for i in {2..24}
+#     do
+#         sed -i "s/\#define NUM_THREADS $((i-1)) /\#define NUM_THREADS $i /g" inc/const.h
+#         make clean > output.txt
+#         make >> output.txt
 
-        cd run/
-        echo -n $i >> same_poscar$cell\file.csv
-        for j in {1..5}
-        do
-            ./coulomb.x >> same_poscar$cell\file.csv
-            echo " " >> same_poscar$cell\file.csv
-        done
-        echo " " >> same_poscar$cell\file.csv
-        echo " " >> same_poscar$cell\file.csv
-        cd ..
-    done
-done
+#         cd run/
+#         echo -n $i >> same_poscar$cell\file.csv
+#         for j in {1..5}
+#         do
+#             ./coulomb.x >> same_poscar$cell\file.csv
+#             echo " " >> same_poscar$cell\file.csv
+#         done
+#         echo " " >> same_poscar$cell\file.csv
+#         echo " " >> same_poscar$cell\file.csv
+#         cd ..
+#     done
+#     sed -i "s/\#define NUM_THREADS 24 /\#define NUM_THREADS 1 /g" inc/const.h
+# done
 
-# fool=1
-# echo "hey" >> hey$fool\to.txt
+## Testing and Validating the bspline code
+
+# for order in {2..7}
+# do 
+#     sed -i "s/int n\=$((order-1))\;/int n\=$order\; /g" Bspline_fftw.cpp
+#     for grid in {2..7}
+#     do 
+#         sed -i "s/vector\<int\> K\=\{$((grid-1)*10)\,60\,60\}\;/"
+#     done
+# done
