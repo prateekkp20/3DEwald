@@ -1,6 +1,9 @@
 #include "libinclude.h"
 #include "const.h"
 
+#define REAL 0
+#define IMAG 1
+
 double M_n(double u, int n){
     if(n<2)return 0;
     else if(n==2){
@@ -44,7 +47,7 @@ void crossProduct(double *v_A, double *v_B, double *out){
 }
 
 double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K, int M, int order){
-
+    // initializing the new variables
     double **G,**u,**x_direc, **y_direc, **z_direc;
     G= new double * [3];
     u= new double * [natoms];
@@ -80,7 +83,7 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     // Calculating the fractional coordinates
     for (int i = 0; i < natoms; i++){
         for (int j = 0; j < 3; j++){
-            u[i][j]=K*dotProduct(PosIons[i],G[j]);
+            u[i][j]=K*dotProduct(PosIons[i],G);
         }
     }
 
@@ -139,5 +142,26 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     fftw_destroy_plan(p);
     fftw_cleanup();
 
-
+    double energy=0;
+    int ii,jj,kk;
+    for (int i = -M; i < M+1; i++){
+        if(i<0) ii=K+i;
+        else ii=i;
+        for (int j = -M; j< M+1; j++){
+            if(j<0) jj=K+j;
+            else  jj=j;
+            for (int k = -M; k < M+1; k++){
+                if(k<0) kk=K+j;
+                else  kk=k;
+                if(i==0&&j==0&&k==0)continue;
+                double m[3]={i*G[0],j*G[1],k*G[2]};
+                double m2=dotProduct(m,m);
+                int temp=ii * (K[2] * K[0]) + jj * K[2] + kk;
+                double norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
+                energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))/m2;
+            }
+        }
+    }
+    energy/=(2*M_PI*atomdata.Volume);
+    return energy;
 }
