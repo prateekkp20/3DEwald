@@ -177,9 +177,11 @@ ld pm_reciprocal_energy(Atoms atomdata){
     ld L3 = atomdata.lattice_vectors[2][2];
     ld beta=5.42/L1;
     vector<ld> L = { L1, L2, L3 };
-    vector<int> K={60,60,60}; //Number of grid points in each direction
-    int n=7; //order of b-spline interpolation
-    int n_max=1;
+    //Number of grid points in each direction
+    vector<int> K={20,20,20};
+    //order of b-spline interpolation
+    int n=5;      
+    int n_max=2;
     int total_atoms=atomdata.charges.size();
 
     // Calculating the fractional coordinates
@@ -211,7 +213,7 @@ ld pm_reciprocal_energy(Atoms atomdata){
         for (int k1 = 0;  k1 < K[0]; k1++){
             x_direc[i][k1]=0;
             for (int n1 = -n_max; n1 < n_max+1; n1++){
-                            x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K[0],n);
+                x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K[0],n);
             }
         }
 
@@ -219,7 +221,7 @@ ld pm_reciprocal_energy(Atoms atomdata){
         for (int k2 = 0;  k2 < K[1]; k2++){
             y_direc[i][k2]=0;
             for (int n2 = -n_max; n2 < n_max+1; n2++){
-                            y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K[1],n);
+                y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K[1],n);
             }
         }
 
@@ -227,10 +229,11 @@ ld pm_reciprocal_energy(Atoms atomdata){
         for (int k3 = 0;  k3 < K[2]; k3++){
             z_direc[i][k3]=0;
             for (int n3 = -n_max; n3 < n_max+1; n3++){
-                            z_direc[i][k3]+=M_n(u[i][2]-k3-n3*K[2],n);
+                z_direc[i][k3]+=M_n(u[i][2]-k3-n3*K[2],n);
             }
         }
     }
+
     // initializing the "in" vector with zero values
     for (int tx = 0; tx < K[0]; tx++){
         for (int ty = 0; ty < K[1]; ty++){
@@ -268,18 +271,21 @@ ld pm_reciprocal_energy(Atoms atomdata){
     for (int i = -M[0]; i < M[0]+1; i++){
         if(i<0) ii=K[0]+i;
         else  ii=i;
-        for (int j = -M[1]; j < M[1]; j++){
+        for (int j = -M[1]; j < M[1]+1; j++){
             if(j<0) jj=K[1]+j;
             else  jj=j;
-            for (int k = -M[2]; k < K[2]; k++){
+            for (int k = -M[2]; k < M[2]+1; k++){
                 if(k<0) kk=K[2]+k;
                 else  kk=k;
                 if(i==0&&j==0&&k==0)continue;
                 vector<ld> m = {i*atomdata.reciprocal_lattice_vectors[0][0]+j*atomdata.reciprocal_lattice_vectors[1][0]+k*atomdata.reciprocal_lattice_vectors[2][0],i*atomdata.reciprocal_lattice_vectors[0][1]+j*atomdata.reciprocal_lattice_vectors[1][1]+k*atomdata.reciprocal_lattice_vectors[2][1],i*atomdata.reciprocal_lattice_vectors[0][2]+j*atomdata.reciprocal_lattice_vectors[1][2]+k*atomdata.reciprocal_lattice_vectors[2][2]};
                 ld m2=dotProduct(m,m);
                 int temp=ii * (K[2] * K[0]) + jj * K[2] + kk;
+                // cout<<temp<<"\n";
                 ld norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
-                energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))/m2; //have to multiply the factor of F(Q)
+                cout<<norm_FQ<<"\n";
+                // cout<<m[0]<<","<<m[1]<<","<<m[2]<<"\n";
+                energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))/m2; 
             }
         }
     }
@@ -289,14 +295,13 @@ ld pm_reciprocal_energy(Atoms atomdata){
 }
 
 ld error(ld pm, ld ewald){
-    return abs(pm-ewald)/ewald;
+    return abs(pm-ewald);
 }
 
 int main(){
-    // clock_t start, end;
-    // string in="/home/prateek/Documents/Prateek/3DEWALD/run/fifty/POSCAR.7";
-    string in="/home/prateek/Documents/Prateek/3DEwald/run/bench/bench1.POSCAR";
+    string in="/home/prateek/Documents/Prateek/3DEwald/run/POSCAR.kcl200";
     // string in="/home/prateek/Documents/Prateek/3d_ewald/lampss_files/3D EWALD/random_generator/20atoms";
+    // string in="/home/prateek/Documents/Prateek/3DEwald/run/bench/bench1.POSCAR";
     Atoms atomData = read_file(in);
     // printAtomData(atomData);
     chrono::time_point<std::chrono::system_clock> start, end;
@@ -307,9 +312,11 @@ int main(){
     end = chrono::system_clock::now();
     chrono::duration<double> elapsed_seconds = end - start;
     time_t end_time = std::chrono::system_clock::to_time_t(end);
-    cout<<fixed<<setprecision(8)<<"Elapsed time: " <<elapsed_seconds.count()<<" sec\n";
+    // cout<<fixed<<setprecision(8)<<"Elapsed time: " <<elapsed_seconds.count()<<" sec\n";
+    // cout <<fixed<<setprecision(5)<<energy<<",";
+    // cout <<fixed<<setprecision(15)<<error(energy,413.33297)<<",";
     cout <<fixed<<setprecision(5)<<"Energy: "<<energy<<" kcal/mol"<<"\n" ;
     // cout << fixed << setprecision(15) <<"Error: "<<error(energy,5.330360132800516e+02)<<"\n";
-    cout << fixed << setprecision(15) <<"Error: "<<error(energy,3.01571)<<"\n";
+    // cout << fixed << setprecision(15) <<"Error: "<<error(energy,19.76929)<<"\n";
     return 0;
 }

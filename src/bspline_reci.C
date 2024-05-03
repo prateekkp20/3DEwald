@@ -4,6 +4,12 @@
 #define REAL 0
 #define IMAG 1
 
+void scalarProductMat(double **mat, double k){
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+            mat[i][j] *= k;    
+}
+
 double M_n(double u, int n){
     if(n<2)return 0;
     else if(n==2){
@@ -21,7 +27,6 @@ double M_n(double u, int n){
 }
 
 complex<double>B(int m, int n, int K){
-    // const double M_PI = acos(-1.0);
     const complex<double> t(0.0, 1.0);
     complex<double> bi_mi=exp((2*M_PI*m*(n-1))/K*t);
     complex<double> denox;
@@ -40,15 +45,16 @@ double dotProduct(double *v1, double *v2) {
     return result;
 }
 
-void crossProduct(double *v_A, double *v_B, double *out){
+void crossProduct(float *v_A, float *v_B, double *out){
    out[0] = v_A[1] * v_B[2] - v_A[2] * v_B[1];
    out[1] = -(v_A[0] * v_B[2] - v_A[2] * v_B[0]);
    out[2] = v_A[0] * v_B[1] - v_A[1] * v_B[0];
 }
 
-double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K, int M, int order){
+double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K, int M, int n){
     // initializing the new variables
-    double **G,**u,**x_direc, **y_direc, **z_direc;
+    double **G,**u,**x_direc, **y_direc, **z_direc, *m;
+    m= new double [3];
     G= new double * [3];
     u= new double * [natoms];
     x_direc= new double * [natoms];
@@ -66,14 +72,28 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     float L1 = box[0][0];
     float L2 = box[1][1];
     float L3 = box[2][2];
-    int n_max=1;
-    int n=5; //order of b-spline interpolation
+    int n_max=2;
+    // int n=order; //order of b-spline interpolation
 
     fftw_complex *in;   //input variable using standard fftw syntax
     fftw_complex *out;	// output variable
 
     float L[3]={L1,L2,L3};
-    double G[3]={2*M_PI/box[0][0], 2*M_PI/box[1][1], 2*M_PI/box[2][2]};
+    double volume = L1*L2*L3;
+    // crossProduct(box[1],box[2],G[0]);
+    // crossProduct(box[2],box[0],G[1]);
+    // crossProduct(box[0],box[1],G[2]);
+    // scalarProductMat(G,1/volume);
+    // cout<<G[1][1]<<"\n";
+    // cout<<G[0][0]<<"\n";
+    // cout<<G[1][0]<<"\n";
+    // cout<<G[2][0]<<"\n";
+    // cout<<G[0][1]<<"\n";
+    // cout<<G[1][1]<<"\n";
+    // cout<<G[2][1]<<"\n";
+    // cout<<G[0][2]<<"\n";
+    // cout<<G[1][2]<<"\n";
+    // cout<<G[2][2]<<"\n";
 
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
@@ -83,7 +103,7 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     // Calculating the fractional coordinates
     for (int i = 0; i < natoms; i++){
         for (int j = 0; j < 3; j++){
-            u[i][j]=K*dotProduct(PosIons[i],G);
+            u[i][j]=K*dotProduct(PosIons[i],G[j]);
         }
     }
 
@@ -142,7 +162,13 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     fftw_destroy_plan(p);
     fftw_cleanup();
 
+    crossProduct(box[1],box[2],G[0]);
+    crossProduct(box[2],box[0],G[1]);
+    crossProduct(box[0],box[1],G[2]);
+    scalarProductMat(G,1/volume);
+
     double energy=0;
+    double constant=(M_PI*M_PI)/(betaa*betaa);
     int ii,jj,kk;
     for (int i = -M; i < M+1; i++){
         if(i<0) ii=K+i;
@@ -151,17 +177,21 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
             if(j<0) jj=K+j;
             else  jj=j;
             for (int k = -M; k < M+1; k++){
-                if(k<0) kk=K+j;
+                if(k<0) kk=K+k;
                 else  kk=k;
                 if(i==0&&j==0&&k==0)continue;
-                double m[3]={i*G[0],j*G[1],k*G[2]};
+                m[0]=i*G[0][0]+j*G[1][0]+k*G[2][0];
+                m[1]=i*G[0][1]+j*G[1][1]+k*G[2][1];
+                m[2]=i*G[0][2]+j*G[1][2]+k*G[2][2];
                 double m2=dotProduct(m,m);
-                int temp=ii * (K[2] * K[0]) + jj * K[2] + kk;
+                int temp=ii * (K * K) + jj * K + kk;
+                // cout<<temp<<"\n";
                 double norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
-                energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))/m2;
+                cout<<norm_FQ<<"\n";
+                energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K)*B(j,n,K)*B(k,n,K))/m2;
             }
         }
     }
-    energy/=(2*M_PI*atomdata.Volume);
+    energy/=(2*M_PI*volume);
     return energy;
 }
