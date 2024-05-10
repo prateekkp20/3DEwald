@@ -4,11 +4,12 @@
 #define REAL 0
 #define IMAG 1
 
-void scalarProductMat(double **mat, double k){
-    for (int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
-            mat[i][j] *= k;    
-}
+// void scalarProductMat(double mat[3][3], double k){
+//     for (int i = 0; i < 3; i++)
+//         for (int j = 0; j < 3; j++)
+//             mat[i][j] *= k;
+//     return mat;    
+// }
 
 double M_n(double u, int n){
     if(n<2)return 0;
@@ -53,24 +54,26 @@ void crossProduct(float *v_A, float *v_B, double *out){
 
 double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K, int M, int n){
     // initializing the new variables
-    double **G,**u,**x_direc, **y_direc, **z_direc, *m;
-    m= new double [3];
-    G= new double * [3];
-    u= new double * [natoms];
-    x_direc= new double * [natoms];
-    y_direc= new double * [natoms];
-    z_direc= new double * [natoms];
+    double G[3][3], u[natoms][3], x_direc[natoms][3], y_direc[natoms][3], z_direc[natoms][3], m[3];
 
-    for (int  i = 0; i < 3; i++){
-        G[i] = new double  [3];
-    }
-    for (int  i = 0; i < natoms; i++){
-        G[i] = new double  [3];
-        u[i] = new double  [3];
-        x_direc[i] = new double  [3];
-        y_direc[i] = new double  [3];
-        z_direc[i] = new double  [3];
-    }
+    // double **G,**u,**x_direc, **y_direc, **z_direc, *m;
+    // m= new double [3];
+    // G= new double * [3];
+    // u= new double * [natoms];
+    // x_direc= new double * [natoms];
+    // y_direc= new double * [natoms];
+    // z_direc= new double * [natoms];
+
+    // for (int  i = 0; i < 3; i++){
+    //     G[i] = new double  [3];
+    // }
+    // for (int  i = 0; i < natoms; i++){
+    //     G[i] = new double  [3];
+    //     u[i] = new double  [3];
+    //     x_direc[i] = new double  [3];
+    //     y_direc[i] = new double  [3];
+    //     z_direc[i] = new double  [3];
+    // }
 
     float L1 = box[0][0];
     float L2 = box[1][1];
@@ -89,12 +92,20 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     fftw_plan p;
     p = fftw_plan_dft_3d(K,K,K, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
 
+    crossProduct(box[1],box[2],G[0]);
+    crossProduct(box[2],box[0],G[1]);
+    crossProduct(box[0],box[1],G[2]);
+
+    for (int x = 0; x < 3; x++)
+        for (int q = 0; q < 3; q++)
+            G[x][q] /= volume;
     // Calculating the fractional coordinates
     for (int i = 0; i < natoms; i++){
         for (int j = 0; j < 3; j++){
             u[i][j]=K*dotProduct(PosIons[i],G[j]);
         }
     }
+    // cout<<u[0][0]<<"\n";
 
     // Calculating the Q Matrix
     for (int i = 0; i < natoms; i++){
@@ -105,12 +116,13 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
                 x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K,n);
             }
         }
-
+    
+    // cout<<x_direc[12][0]<<"\n";
         // for Y direction
         for (int  k2 = 0; k2 < K; k2++){
             y_direc[i][k2]=0;
             for (int  n2 = -n_max; n2 < n_max+1; n2++){
-                y_direc[i][k2]+=M_n(u[i][0]-k2-n2*K,n);
+                y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K,n);
             }
         }
 
@@ -118,7 +130,7 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
         for (int  k3 = 0; k3 < K; k3++){
             z_direc[i][k3]=0;
             for (int  n3 = -n_max; n3 < n_max+1; n3++){
-                z_direc[i][k3]+=M_n(u[i][0]-k3-n3*K,n);
+                z_direc[i][k3]+=M_n(u[i][2]-k3-n3*K,n);
             }
         }
     }
@@ -137,10 +149,13 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
         continue;
         for (int tx = 0; tx < K; tx++){
             if (x_direc[j][tx] == 0)continue;
+
             for (int ty = 0; ty < K; ty++){
                 if (y_direc[j][ty] == 0)continue;
+
                 for (int tz = 0; tz < K; tz++){
                     if (z_direc[j][tz] == 0)continue;
+
                     in[tx * (K * K) + ty * K + tz][0] += ion_charges[j] * x_direc[j][tx] * y_direc[j][ty] * z_direc[j][tz];
                 }
             }
@@ -151,10 +166,15 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     fftw_destroy_plan(p);
     fftw_cleanup();
 
-    crossProduct(box[1],box[2],G[0]);
-    crossProduct(box[2],box[0],G[1]);
-    crossProduct(box[0],box[1],G[2]);
-    scalarProductMat(G,1/volume);
+    // crossProduct(box[1],box[2],G[0]);
+    // crossProduct(box[2],box[0],G[1]);
+    // crossProduct(box[0],box[1],G[2]);
+
+    // for (int x = 0; x < 3; x++)
+    //     for (int q = 0; q < 3; q++)
+    //         G[x][q] /= volume;
+    
+    // G=scalarProductMat(G,1/volume);
 
     double energy=0;
     double constant=(M_PI*M_PI)/(betaa*betaa);
@@ -183,6 +203,22 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     }
     energy/=(2*M_PI*volume);
 
+    return energy;
+
+    // for (int  i = 0; i < 3; i++){
+    //     free(G[i]);
+    // }
+    // for (int  i = 0; i < natoms; i++){
+    //     free(u[i]);
+    //     free(x_direc[i]);
+    //     free(y_direc[i]);
+    //     free(z_direc[i]);
+    // }
+    // free(G);
+	// free(u);
+	// free(x_direc);
+	// free(y_direc);
+	// free(z_direc);
     // for (int  i = 0; i < 3; i++){
     //     delete [] G[i];
     // }
@@ -197,7 +233,5 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
 	// delete [] x_direc;
 	// delete [] y_direc;
 	// delete [] z_direc;
-    // cout<<energy;
-    return energy;
 
 }

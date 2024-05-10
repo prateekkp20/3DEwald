@@ -178,7 +178,7 @@ ld pm_reciprocal_energy(Atoms atomdata){
     ld beta=5.42/L1;
     vector<ld> L = { L1, L2, L3 };
     //Number of grid points in each direction
-    vector<int> K={20,20,20};
+    vector<int> K={60,60,60};
     //order of b-spline interpolation
     int n=5;      
     int n_max=2;
@@ -192,7 +192,7 @@ ld pm_reciprocal_energy(Atoms atomdata){
             u[i][j]=K[j]*dotProduct(atomdata.coordinates[i],atomdata.reciprocal_lattice_vectors[j]);
         }
     }
-
+    // cout<<u[0][0]<<"\n";
     fftw_complex *in;   //input variable using standard fftw syntax
     fftw_complex *out;	// output variable
 
@@ -216,6 +216,7 @@ ld pm_reciprocal_energy(Atoms atomdata){
                 x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K[0],n);
             }
         }
+    // cout<<x_direc[12][0]<<"\n";
 
         // for Y direction
         for (int k2 = 0;  k2 < K[1]; k2++){

@@ -291,24 +291,33 @@ int main(int argc, char **argv){
 	chrono::time_point<std::chrono::system_clock> start1, end1;
 	start1 = chrono::system_clock::now();
 	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell,6)*unitzer;
-	cout<<fixed<<setprecision(5)<<","<<recienergy<<",";
-	// // cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
+	// cout<<fixed<<setprecision(5)<<","<<recienergy<<",";
+	cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
 	end1 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds1 = end1- start1;
     time_t end_time1 = std::chrono::system_clock::to_time_t(end1);
-	cout<<fixed<<setprecision(8)<<elapsed_seconds1.count()<<",";
-	// cout<< "elapsed time: " << elapsed_seconds1.count() << " sec\n\n";
+	// cout<<fixed<<setprecision(8)<<elapsed_seconds1.count()<<",";
+	// cout<< "Elapsed time: " << elapsed_seconds1.count() << " sec\n";
+
+	// chrono::time_point<std::chrono::system_clock> start2, end2;
+	// start2 = chrono::system_clock::now();
+	// double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell)*unitzer;
+	// cout<<fixed<<setprecision(5)<<realenergy<<",";
+	// cout<<fixed<<setprecision(5)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
+	// end2 = chrono::system_clock::now();
+	// chrono::duration<double> elapsed_seconds2 = end2 - start2;
+    // time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
+	// cout<<fixed<<setprecision(8)<<elapsed_seconds2.count()<<",";
+	// cout<< "elapsed time: " << elapsed_seconds2.count() << " sec";
 
 	chrono::time_point<std::chrono::system_clock> start2, end2;
 	start2 = chrono::system_clock::now();
-	double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell)*unitzer;
-	cout<<fixed<<setprecision(5)<<realenergy<<",";
-	// cout<<fixed<<setprecision(5)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
+	double recienergy_bs=bspline(PosIons, ion_charges, natoms, a, boxcell,60,6,5)*unitzer;
+	cout<<fixed<<setprecision(5)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n";
 	end2 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds2 = end2 - start2;
     time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
-	cout<<fixed<<setprecision(8)<<elapsed_seconds2.count()<<",";
-	// cout<< "elapsed time: " << elapsed_seconds2.count() << " sec";
+	// cout<< "Elapsed time: " << elapsed_seconds2.count() << " sec";
 
 	// for benchmarking using the lammps data
 	// cout<<fixed<<setprecision(5)<<" "<<realenergy<<" ";
