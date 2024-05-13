@@ -99,7 +99,6 @@ Atoms read_file(string filename){
         for (int i = 0; i < total_atoms; ++i){
             for (int j = 0; j < 3; ++j){
                 file >> atomdata.coordinates[i][j];
-                // cout<<atomdata.coordinates[i][j];
             }
         }
         // Convert from direct to Cartesian coordinates
@@ -156,6 +155,7 @@ void printAtomData(const Atoms& atomData) {
     }
     cout << "\n";
 }
+
 complex<ld>B(int m,int n,int K){
     const ld pi = acos(-1.0);
     const complex<ld> t(0.0, 1.0);
@@ -181,13 +181,8 @@ complex<ld> B_FQ(int m1,int m2, int m3,vector<vector<ld>> u,vector<int> charges,
         complex<ld> x_dir;
         for (int k1 = 0;  k1 < K[0]; k1++){
             complex<ld> xyz;
-            // for (int n1 = 0; n1 < n+1; n1++){
-            // if(u[i][0]-k1<0)continue;
             for (int n1 = -n_max; n1 < n_max+1; n1++){
-                            // xyz+=M_n(u[i][0]-n1,n);
                             xyz+=M_n(u[i][0]-k1-n1*K[0],n);
-                            // x_dir+=M_n(u[i][0]-k1-n1*K[0],n)*exp((2*pi*m1*k1)/K[0]*t);
-                            // cout<<x_dir<<"\n";
             }
             xyz*=exp((two_pi_m1*k1)/K[0]*t);
             x_dir+=xyz;
@@ -199,8 +194,6 @@ complex<ld> B_FQ(int m1,int m2, int m3,vector<vector<ld>> u,vector<int> charges,
             complex<ld> xyz;
             for (int n2 = -n_max; n2 < n_max+1; n2++){
                             xyz+=M_n(u[i][1]-k2-n2*K[1],n);
-                            // y_dir+=M_n(u[i][1]-k2-n2*K[1],n)*exp((2*pi*m2*k2)/K[1]*t);
-                            // cout<<y_dir<<"\n";
             }
             xyz*=exp((two_pi_m2*k2)/K[1]*t);
             y_dir+=xyz;
@@ -212,8 +205,6 @@ complex<ld> B_FQ(int m1,int m2, int m3,vector<vector<ld>> u,vector<int> charges,
             complex<ld> xyz;
             for (int n3 = -n_max; n3 < n_max+1; n3++){
                             xyz+=M_n(u[i][2]-k3-n3*K[2],n);
-                            // z_dir+=M_n(u[i][2]-k3-n3*K[2],n)*exp((2*pi*m3*k3)/K[2]*t);
-                            // cout<<z_dir<<"\n";
             }
             xyz*=exp((two_pi_m3*k3)/K[2]*t);
             z_dir+=xyz;
@@ -221,9 +212,7 @@ complex<ld> B_FQ(int m1,int m2, int m3,vector<vector<ld>> u,vector<int> charges,
         
         const complex<ld> charge(charges[i], 0.0);
         B_FQ+=x_dir*y_dir*z_dir*charge;
-        // cout<<B_FQ<<"\n";
     }
-    // return B_FQ*B(m1,n,K[0])*B(m2,n,K[1])*B(m3,n,K[2]);
     return B_FQ;
 }
 
@@ -252,7 +241,7 @@ ld pm_reciprocal_energy(Atoms atomdata){
     ld beta2=beta*beta;
     omp_set_num_threads(thread::hardware_concurrency());
     // #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(3)
-    #pragma omp parallel for schedule(runtime) reduction(+: energy) 
+    // #pragma omp parallel for schedule(runtime) reduction(+: energy) 
     for (int i = -M[0]; i < M[0]+1; i++){
         for (int j = -M[1]; j < M[1]+1; j++){
             for (int k = -M[2]; k < M[2]+1; k++){
@@ -260,9 +249,6 @@ ld pm_reciprocal_energy(Atoms atomdata){
                 vector<ld> m = {i*atomdata.reciprocal_lattice_vectors[0][0]+j*atomdata.reciprocal_lattice_vectors[1][0]+k*atomdata.reciprocal_lattice_vectors[2][0],i*atomdata.reciprocal_lattice_vectors[0][1]+j*atomdata.reciprocal_lattice_vectors[1][1]+k*atomdata.reciprocal_lattice_vectors[2][1],i*atomdata.reciprocal_lattice_vectors[0][2]+j*atomdata.reciprocal_lattice_vectors[1][2]+k*atomdata.reciprocal_lattice_vectors[2][2]};
                 ld m2=dotProduct(m,m);
                 energy += exp((-pi2*m2)/(beta2))*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))*norm(B_FQ(i,j,k,u,atomdata.charges,n_max,n,K))/m2;
-                // cout<<i<<" "<<j<<" "<<k<<" "<<norm(B_FQ(i,j,k,u,atomdata.charges,n_max,n,K))<<"\n";
-                // energy += exp((-pi*pi*m2)/(beta*beta))*norm(B_FQ(i,j,k,u,atomdata.charges,n_max,n,K))/m2;
-                // cout<<"energy"<<"\n";
             }
         }
     }
@@ -277,7 +263,8 @@ ld error(ld pm, ld ewald){
 
 int main(){
     clock_t start, end;
-    string in="/home/prateek/Documents/Prateek/3d_ewald/lampss_files/3D EWALD/random_generator/20atoms";
+    string in="/home/prateek/Documents/Prateek/3DEwald/run/bench/bench1.POSCAR";
+    // string in="/home/prateek/Documents/Prateek/3d_ewald/lampss_files/3D EWALD/random_generator/20atoms";
     Atoms atomData = read_file(in);
     // printAtomData(atomData);
     start=clock();
@@ -286,7 +273,7 @@ int main(){
     ld time_taken= double(end-start)/double(CLOCKS_PER_SEC);
     cout << fixed << setprecision(2)<<"Elapsed Taken: "<<time_taken<<" Sec"<<"\n" ;
     cout << fixed << setprecision(5) <<"Energy: "<<energy<<" kcal/mol"<<"\n" ;
-    cout << fixed << setprecision(15) <<"Error: "<<error(energy,5.330360132800516e+02)<<"\n";
+    // cout << fixed << setprecision(15) <<"Error: "<<error(energy,5.330360132800516e+02)<<"\n";
     return 0;
 }
 

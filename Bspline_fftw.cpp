@@ -189,11 +189,8 @@ ld pm_reciprocal_energy(Atoms atomdata){
     for (int i = 0; i < total_atoms; i++){
         for (int j = 0; j < 3; j++){
             u[i][j]=K[j]*dotProduct(atomdata.coordinates[i],atomdata.reciprocal_lattice_vectors[j]);
-            // cout<<u[i][j]<<"\n";
         }
     }
-    // cout<<u[5][5]<<"\n";
-    // cout<<u[0][0]<<"\n";
     fftw_complex *in;   //input variable using standard fftw syntax
     fftw_complex *out;	// output variable
 
@@ -208,26 +205,21 @@ ld pm_reciprocal_energy(Atoms atomdata){
     y_direc.resize(atomdata.charges.size(), vector<ld>(K[1]));
     vector<vector<ld>> z_direc;
     z_direc.resize(atomdata.charges.size(), vector<ld>(K[2]));
-
+    
     for (int i = 0; i < atomdata.charges.size(); i++){
         // for X direction
         for (int k1 = 0;  k1 < K[0]; k1++){
             x_direc[i][k1]=0;
             for (int n1 = -n_max; n1 < n_max+1; n1++){
                 x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K[0],n);
-                // if(x_direc[i][k1]==0)continue;
-                // else cout<<x_direc[i][k1]<<"\n";
             }
         }
-    // cout<<x_direc[12][0]<<"\n";
 
         // for Y direction
         for (int k2 = 0;  k2 < K[1]; k2++){
             y_direc[i][k2]=0;
             for (int n2 = -n_max; n2 < n_max+1; n2++){
                 y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K[1],n);
-                // if(y_direc[i][k2]==0)continue;
-                // else cout<<y_direc[i][k2]<<"\n";
             }
         }
 
@@ -236,8 +228,6 @@ ld pm_reciprocal_energy(Atoms atomdata){
             z_direc[i][k3]=0;
             for (int n3 = -n_max; n3 < n_max+1; n3++){
                 z_direc[i][k3]+=M_n(u[i][2]-k3-n3*K[2],n);
-                // if(z_direc[i][k3]==0)continue;
-                // else cout<<z_direc[i][k3]<<"\n";
             }
         }
     }
@@ -252,7 +242,6 @@ ld pm_reciprocal_energy(Atoms atomdata){
     }
 
     for (int j = 0; j < total_atoms; j++){
-    cout<<atomdata.charges[j]<<"\n";
     if (total_atoms == 0)
         continue;
         for (int tx = 0; tx < K[0]; tx++){
@@ -265,8 +254,6 @@ ld pm_reciprocal_energy(Atoms atomdata){
                     if (z_direc[j][tz] == 0)continue;
 
                     in[tx * (K[2] * K[1]) + ty * K[2] + tz][0] += atomdata.charges[j] * x_direc[j][tx] * y_direc[j][ty] * z_direc[j][tz];
-                    // cout<<in[tx * (K[2] * K[1]) + ty * K[2] + tz][0]<<"\n";
-                    // cout<<tx * (K[2] * K[1]) + ty * K[2] + tz<<"\n";
                 }
             }
         }
@@ -292,11 +279,7 @@ ld pm_reciprocal_energy(Atoms atomdata){
                 vector<ld> m = {i*atomdata.reciprocal_lattice_vectors[0][0]+j*atomdata.reciprocal_lattice_vectors[1][0]+k*atomdata.reciprocal_lattice_vectors[2][0],i*atomdata.reciprocal_lattice_vectors[0][1]+j*atomdata.reciprocal_lattice_vectors[1][1]+k*atomdata.reciprocal_lattice_vectors[2][1],i*atomdata.reciprocal_lattice_vectors[0][2]+j*atomdata.reciprocal_lattice_vectors[1][2]+k*atomdata.reciprocal_lattice_vectors[2][2]};
                 ld m2=dotProduct(m,m);
                 int temp=ii * (K[2] * K[0]) + jj * K[2] + kk;
-                // cout<<temp<<"\n";
                 ld norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
-                // if(i==02&&j==02&&k==02) cout<<norm_FQ<<"\n";
-                // cout<<norm_FQ<<"\n";
-                // cout<<m[0]<<","<<m[1]<<","<<m[2]<<"\n";
                 energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K[0])*B(j,n,K[1])*B(k,n,K[2]))/m2; 
             }
         }
