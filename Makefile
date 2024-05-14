@@ -1,7 +1,7 @@
 CC = /usr/bin/g++	
 DEBUGFLAGS = -Wall
-OPTFLAGS = -o3 -fopenmp
-FFTFLAGS = -lfftw3
+OPTFLAGS = -o3 -fopenmp -lpthread
+FFTFLAGS = -lfftw3_threads -lfftw3 -lm -lfftw3_omp
 
 RUN_DIR=./run
 RAT_OUTPUT=$(RUN_DIR)/coulomb.x
