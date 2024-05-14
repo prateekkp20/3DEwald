@@ -21,7 +21,6 @@ long double M_n(long double u, int n){
     }
 }
 
-
 complex<long double>B(int m, int n, int K){
     const complex<long double> t(0.0, 1.0);
     complex<long double> bi_mi=exp((2*pi*pi*(n-1))/K*t);
@@ -58,6 +57,7 @@ void crossProduct(float *v_A, float *v_B,long double *out){
 double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K, int M, int n){
     // n: order of b-spline interpolation
     // initializing the new variables
+    // fftw_init_threads();
     cout<<fixed<<setprecision(10);
     long double G[3][3], u[natoms][3], x_direc[natoms][K], y_direc[natoms][K], z_direc[natoms][K], m[3];
 
@@ -66,16 +66,19 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     float L3 = box[2][2];
     int n_max=2;
 
-    fftw_complex *in;   //input variable using standard fftw syntax
+    fftw_complex *in;   // input variable using standard fftw syntax
     fftw_complex *out;	// output variable
 
     float L[3]={L1,L2,L3};
     long double volume = L1*L2*L3;
-
+    omp_set_num_threads(thread::hardware_concurrency());
+    // omp_set_num_threads(14);
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     fftw_plan p;
+    // #pragma omp critical (make_plan)
     p = fftw_plan_dft_3d(K,K,K, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    // fftw_plan_with_nthreads(thread::hardware_concurrency());
 
     crossProduct(box[1],box[2],G[0]);
     crossProduct(box[2],box[0],G[1]);
@@ -101,7 +104,7 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
                 x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K,n);
             }
         }
-    
+
         // for Y direction
         for (int  k2 = 0; k2 < K; k2++){
             y_direc[i][k2]=0;
@@ -118,7 +121,7 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
             }
         }
     }
-    
+
     // initializing the "in" vector with zero values
     for (int tx = 0; tx < K; tx++){
         for (int ty = 0; ty < K; ty++){
@@ -147,12 +150,15 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     }
 
     fftw_execute(p);
+    // #pragma omp critical (FFTW)
     fftw_destroy_plan(p);
     fftw_cleanup();
-
+    // fftw_cleanup_threads();
     long double energy=0;
     double constant=(M_PI*M_PI)/(betaa*betaa);
     int ii,jj,kk;
+    #pragma omp parallel for schedule(runtime) reduction(+: energy)
+    // #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(3)
     for (int i = -M; i < M+1; i++){
         if(i<0) ii=K+i;
         else ii=i;
@@ -174,6 +180,5 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
         }
     }
     energy/=(2*M_PI*volume);
-
     return energy;
 }
