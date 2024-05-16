@@ -59,7 +59,20 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     // initializing the new variables
     // fftw_init_threads();
     cout<<fixed<<setprecision(10);
-    long double G[3][3], u[natoms][3], x_direc[natoms][K], y_direc[natoms][K], z_direc[natoms][K], m[3];
+    long double G[3][3], m[3];
+    long double **u,**x_direc, **y_direc, **z_direc;
+    // long double G[3][3], u[natoms][3], x_direc[natoms][K], y_direc[natoms][K], z_direc[natoms][K], m[3];
+    u= new long double * [natoms];
+    x_direc= new long double * [natoms];
+    y_direc= new long double * [natoms];
+    z_direc= new long double * [natoms];
+
+    for (int  i = 0; i < natoms; i++){
+        u[i] = new long double  [3];
+        x_direc[i] = new long double  [K];
+        y_direc[i] = new long double  [K];
+        z_direc[i] = new long double  [K];
+    }
 
     float L1 = box[0][0];
     float L2 = box[1][1];
@@ -71,8 +84,8 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
 
     float L[3]={L1,L2,L3};
     long double volume = L1*L2*L3;
-    omp_set_num_threads(thread::hardware_concurrency());
-    // omp_set_num_threads(14);
+    // omp_set_num_threads(thread::hardware_concurrency());
+    // omp_set_num_threads(8);
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     fftw_plan p;
@@ -80,10 +93,10 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     p = fftw_plan_dft_3d(K,K,K, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
     // fftw_plan_with_nthreads(thread::hardware_concurrency());
 
+    // Calculating the reciprocal vectors
     crossProduct(box[1],box[2],G[0]);
     crossProduct(box[2],box[0],G[1]);
     crossProduct(box[0],box[1],G[2]);
-
     for (int x = 0; x < 3; x++)
         for (int q = 0; q < 3; q++)
             G[x][q] /= volume;
@@ -150,22 +163,24 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     }
 
     fftw_execute(p);
-    // #pragma omp critical (FFTW)
+    #pragma omp critical (FFTW)
     fftw_destroy_plan(p);
     fftw_cleanup();
     // fftw_cleanup_threads();
     long double energy=0;
     double constant=(M_PI*M_PI)/(betaa*betaa);
-    int ii,jj,kk;
-    #pragma omp parallel for schedule(runtime) reduction(+: energy)
-    // #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(3)
-    for (int i = -M; i < M+1; i++){
-        if(i<0) ii=K+i;
-        else ii=i;
-        for (int j = -M; j< M+1; j++){
-            if(j<0) jj=K+j;
-            else  jj=j;
-            for (int k = -M; k < M+1; k++){
+    int i,j,k,ii,jj,kk;
+    // collapse doesn't makes a difference here much; dynamic and runtime give the same time
+    // #pragma omp parallel for reduction(+: energy)
+    // #pragma omp parallel for schedule(runtime) reduction(+: energy)
+    // #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(2)
+    for (i = -M; i < M+1; i++){
+        for (j = -M; j< M+1; j++){
+            for (k = -M; k < M+1; k++){
+                if(i<0) ii=K+i;
+                else ii=i;
+                if(j<0) jj=K+j;
+                else  jj=j;
                 if(k<0) kk=K+k;
                 else  kk=k;
                 if(i==0&&j==0&&k==0)continue;
