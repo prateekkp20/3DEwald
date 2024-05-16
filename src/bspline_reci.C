@@ -32,6 +32,14 @@ complex<long double>B(int m, int n, int K){
     return bi_mi;
 }
 
+long double dir(long double u, int t, int K, int n, int n_max){
+    long double direc=0;
+    for (int  n1 = -n_max; n1 < n_max+1; n1++){
+        direc+=M_n(u-t-n1*K,n);
+    }
+    return direc;
+}
+
 long double dotProductu(double *v1,long double *v2) {
     double result = 0.0;
     for (int i = 0; i < 3; i++) {
@@ -109,31 +117,31 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     }
 
     // Calculating the Q Matrix
-    for (int i = 0; i < natoms; i++){
-        // for X direction
-        for (int  k1 = 0; k1 < K; k1++){
-            x_direc[i][k1]=0;
-            for (int  n1 = -n_max; n1 < n_max+1; n1++){
-                x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K,n);
-            }
-        }
+    // for (int i = 0; i < natoms; i++){
+    //     // for X direction
+    //     for (int  k1 = 0; k1 < K; k1++){
+    //         x_direc[i][k1]=0;
+    //         for (int  n1 = -n_max; n1 < n_max+1; n1++){
+    //             x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K,n);
+    //         }
+    //     }
 
-        // for Y direction
-        for (int  k2 = 0; k2 < K; k2++){
-            y_direc[i][k2]=0;
-            for (int  n2 = -n_max; n2 < n_max+1; n2++){
-                y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K,n);
-            }
-        }
+    //     // for Y direction
+    //     for (int  k2 = 0; k2 < K; k2++){
+    //         y_direc[i][k2]=0;
+    //         for (int  n2 = -n_max; n2 < n_max+1; n2++){
+    //             y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K,n);
+    //         }
+    //     }
 
-        // for Z direction
-        for (int  k3 = 0; k3 < K; k3++){
-            z_direc[i][k3]=0;
-            for (int  n3 = -n_max; n3 < n_max+1; n3++){
-                z_direc[i][k3]+=M_n(u[i][2]-k3-n3*K,n);
-            }
-        }
-    }
+    //     // for Z direction
+    //     for (int  k3 = 0; k3 < K; k3++){
+    //         z_direc[i][k3]=0;
+    //         for (int  n3 = -n_max; n3 < n_max+1; n3++){
+    //             z_direc[i][k3]+=M_n(u[i][2]-k3-n3*K,n);
+    //         }
+    //     }
+    // }
 
     // initializing the "in" vector with zero values
     for (int tx = 0; tx < K; tx++){
@@ -143,20 +151,24 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
             }
         }
     }
-
     for (int j = 0; j < natoms; j++){
     if (natoms == 0)
         continue;
         for (int tx = 0; tx < K; tx++){
-            if (x_direc[j][tx] == 0)continue;
+            long double x_dir = dir(u[j][0],tx, K, n, n_max);
+            if (x_dir == 0)continue;
+            // if (x_direc[j][tx] == 0)continue;
 
             for (int ty = 0; ty < K; ty++){
-                if (y_direc[j][ty] == 0)continue;
+                long double y_dir = dir(u[j][1],ty, K, n, n_max);
+                if (y_dir == 0)continue;
 
                 for (int tz = 0; tz < K; tz++){
-                    if (z_direc[j][tz] == 0)continue;
+                    long double z_dir = dir(u[j][2],tz, K, n, n_max);
+                    if (z_dir == 0)continue;
 
-                    in[tx * (K * K) + ty * K + tz][0] += ion_charges[j] * x_direc[j][tx] * y_direc[j][ty] * z_direc[j][tz];
+                    // in[tx * (K * K) + ty * K + tz][0] += ion_charges[j] * x_direc[j][tx] * y_direc[j][ty] * z_direc[j][tz];
+                    in[tx * (K * K) + ty * K + tz][0] += ion_charges[j] * x_dir * y_dir * z_dir;
                 }
             }
         }
@@ -173,7 +185,7 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     // collapse doesn't makes a difference here much; dynamic and runtime give the same time
     // #pragma omp parallel for reduction(+: energy)
     // #pragma omp parallel for schedule(runtime) reduction(+: energy)
-    // #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(2)
+    // #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(3)
     for (i = -M; i < M+1; i++){
         for (j = -M; j< M+1; j++){
             for (k = -M; k < M+1; k++){
