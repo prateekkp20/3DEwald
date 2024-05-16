@@ -64,12 +64,11 @@ void crossProduct(float *v_A, float *v_B,long double *out){
 
 double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K, int M, int n){
     // n: order of b-spline interpolation
-    // initializing the new variables
     // fftw_init_threads();
-    cout<<fixed<<setprecision(10);
+    // cout<<fixed<<setprecision(10);
+    // initializing the new variables
     long double G[3][3], m[3];
     long double **u,**x_direc, **y_direc, **z_direc;
-    // long double G[3][3], u[natoms][3], x_direc[natoms][K], y_direc[natoms][K], z_direc[natoms][K], m[3];
     u= new long double * [natoms];
     x_direc= new long double * [natoms];
     y_direc= new long double * [natoms];
@@ -117,31 +116,31 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     }
 
     // Calculating the Q Matrix
-    // for (int i = 0; i < natoms; i++){
-    //     // for X direction
-    //     for (int  k1 = 0; k1 < K; k1++){
-    //         x_direc[i][k1]=0;
-    //         for (int  n1 = -n_max; n1 < n_max+1; n1++){
-    //             x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K,n);
-    //         }
-    //     }
+    for (int i = 0; i < natoms; i++){
+        // for X direction
+        for (int  k1 = 0; k1 < K; k1++){
+            x_direc[i][k1]=0;
+            for (int  n1 = -n_max; n1 < n_max+1; n1++){
+                x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K,n);
+            }
+        }
 
-    //     // for Y direction
-    //     for (int  k2 = 0; k2 < K; k2++){
-    //         y_direc[i][k2]=0;
-    //         for (int  n2 = -n_max; n2 < n_max+1; n2++){
-    //             y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K,n);
-    //         }
-    //     }
+        // for Y direction
+        for (int  k2 = 0; k2 < K; k2++){
+            y_direc[i][k2]=0;
+            for (int  n2 = -n_max; n2 < n_max+1; n2++){
+                y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K,n);
+            }
+        }
 
-    //     // for Z direction
-    //     for (int  k3 = 0; k3 < K; k3++){
-    //         z_direc[i][k3]=0;
-    //         for (int  n3 = -n_max; n3 < n_max+1; n3++){
-    //             z_direc[i][k3]+=M_n(u[i][2]-k3-n3*K,n);
-    //         }
-    //     }
-    // }
+        // for Z direction
+        for (int  k3 = 0; k3 < K; k3++){
+            z_direc[i][k3]=0;
+            for (int  n3 = -n_max; n3 < n_max+1; n3++){
+                z_direc[i][k3]+=M_n(u[i][2]-k3-n3*K,n);
+            }
+        }
+    }
 
     // initializing the "in" vector with zero values
     for (int tx = 0; tx < K; tx++){
@@ -155,27 +154,29 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     if (natoms == 0)
         continue;
         for (int tx = 0; tx < K; tx++){
-            long double x_dir = dir(u[j][0],tx, K, n, n_max);
-            if (x_dir == 0)continue;
-            // if (x_direc[j][tx] == 0)continue;
+            // long double x_dir = dir(u[j][0],tx, K, n, n_max);
+            // if (x_dir == 0)continue;
+            if (x_direc[j][tx] == 0)continue;
 
             for (int ty = 0; ty < K; ty++){
-                long double y_dir = dir(u[j][1],ty, K, n, n_max);
-                if (y_dir == 0)continue;
+                // long double y_dir = dir(u[j][1],ty, K, n, n_max);
+                // if (y_dir == 0)continue;
+                if (y_direc[j][ty] == 0)continue;
 
                 for (int tz = 0; tz < K; tz++){
-                    long double z_dir = dir(u[j][2],tz, K, n, n_max);
-                    if (z_dir == 0)continue;
+                    // long double z_dir = dir(u[j][2],tz, K, n, n_max);
+                    // if (z_dir == 0)continue;
+                    if (z_direc[j][tz] == 0)continue;
 
-                    // in[tx * (K * K) + ty * K + tz][0] += ion_charges[j] * x_direc[j][tx] * y_direc[j][ty] * z_direc[j][tz];
-                    in[tx * (K * K) + ty * K + tz][0] += ion_charges[j] * x_dir * y_dir * z_dir;
+                    in[tx * (K * K) + ty * K + tz][0] += ion_charges[j] * x_direc[j][tx] * y_direc[j][ty] * z_direc[j][tz];
+                    // in[tx * (K * K) + ty * K + tz][0] += ion_charges[j] * x_dir * y_dir * z_dir;
                 }
             }
         }
     }
 
     fftw_execute(p);
-    #pragma omp critical (FFTW)
+    // #pragma omp critical (FFTW)
     fftw_destroy_plan(p);
     fftw_cleanup();
     // fftw_cleanup_threads();
