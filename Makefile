@@ -1,30 +1,26 @@
 CC = /usr/bin/g++	
 DEBUGFLAGS = -Wall
-OPTFLAGS = -o3 -fopenmp -lpthread
+OPTFLAGS = -O3 -fopenmp -pthread
 FFTFLAGS = -lfftw3_threads -lfftw3 -lm -lfftw3_omp
 
 RUN_DIR=./run
 RAT_OUTPUT=$(RUN_DIR)/coulomb.x
 
-#folder to include 
+# Include folders
 
 INC_LIST= -I ./inc \
 	#   -I/home/prateek/eigen3/
 
 # Source Folders
-
 SRC_DIR=./src
 
 # Object folders
-
 OBJ_DIR=./obj
 
 # Library folders
-
 LIB_DIR=./lib
 
 # Object list
-
 OBJ_FILES=$(OBJ_DIR)/main.o \
 	  $(OBJ_DIR)/dSFMT.o \
 	  $(OBJ_DIR)/print.o \
@@ -32,15 +28,14 @@ OBJ_FILES=$(OBJ_DIR)/main.o \
 	  $(OBJ_DIR)/real_e.o \
 	  $(OBJ_DIR)/dist.o \
 	  $(OBJ_DIR)/reciprocal.o \
-	  $(OBJ_DIR)/bspline_reci.o \
+	  $(OBJ_DIR)/bspline_reci.o
 
 # Make Targets
 all:$(OBJ_FILES) output
 
 output:$(RAT_OUTPUT)
 
-
-# build object files
+# Build object files
 $(OBJ_DIR)/main.o:$(SRC_DIR)/main.c
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o $(OBJ_DIR)/main.o $(INC_LIST)
 $(OBJ_DIR)/dSFMT.o:$(SRC_DIR)/dSFMT.c
@@ -58,14 +53,8 @@ $(OBJ_DIR)/reciprocal.o:$(SRC_DIR)/reciprocal.C
 $(OBJ_DIR)/bspline_reci.o:$(SRC_DIR)/bspline_reci.C
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/bspline_reci.o $(INC_LIST)
 
-#
-#
-#
-#
-
 $(RAT_OUTPUT):$(OBJ_FILES)
-	$(CC) $(OPTFLAGS)  $(FFTFLAGS) $(INC_LIST) -o  $(RAT_OUTPUT) $(OBJ_FILES) 
-
+	$(CC) $(OPTFLAGS) $(INC_LIST) -o $(RAT_OUTPUT) $(OBJ_FILES) $(FFTFLAGS)
 
 # Clean objects and library
 clean:
