@@ -297,7 +297,7 @@ int main(int argc, char **argv){
 	chrono::duration<double> elapsed_seconds1 = end1- start1;
     time_t end_time1 = std::chrono::system_clock::to_time_t(end1);
 	// cout<<fixed<<setprecision(8)<<elapsed_seconds1.count()<<",";
-	// cout<< "Elapsed time: " << elapsed_seconds1.count() << " sec\n";
+	cout<< "Elapsed time: " << elapsed_seconds1.count() << " sec\n";
 
 	// chrono::time_point<std::chrono::system_clock> start2, end2;
 	// start2 = chrono::system_clock::now();
@@ -317,7 +317,20 @@ int main(int argc, char **argv){
 	end2 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds2 = end2 - start2;
     time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
-	// cout<< "Elapsed time: " << elapsed_seconds2.count() << " sec";
+	cout<< "Elapsed time: " << elapsed_seconds2.count() << " sec\n";
+
+/* using std::chrono::duration_cast; */
+/* using HR = std::chrono::high_resolution_clock; */
+/* using HRTimer = HR::time_point; */
+/* using std::chrono::microseconds; */
+/* using std::chrono::seconds; */
+
+/*   HRTimer start = HR::now(); */
+/*  recienergy_bs=bspline(PosIons, ion_charges, natoms, a, boxcell,60,6,5)*unitzer; */
+/* 	cout<<fixed<<setprecision(5)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n"; */
+/*   HRTimer end = HR::now(); */
+/*   auto duration = duration_cast<microseconds>(end - start).count(); */
+/* 	cout<< "Elapsed time: " << duration << " usec"; */
 
 	// for benchmarking using the lammps data
 	// cout<<fixed<<setprecision(5)<<" "<<realenergy<<" ";
