@@ -32,14 +32,6 @@ complex<long double>B(int m, int n, int K){
     return bi_mi;
 }
 
-long double dir(long double u, int t, int K, int n, int n_max){
-    long double direc=0;
-    for (int  n1 = -n_max; n1 < n_max+1; n1++){
-        direc+=M_n(u-t-n1*K,n);
-    }
-    return direc;
-}
-
 long double dotProductu(double *v1,long double *v2) {
     double result = 0.0;
     for (int i = 0; i < 3; i++) {
@@ -88,17 +80,20 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
 
     fftw_complex *in;   // input variable using standard fftw syntax
     fftw_complex *out;	// output variable
+    
+    // Volume Calculations
+    long double A[3];
+    long double C[3]={box[2][0],box[2][1],box[2][2]};
+    crossProduct(box[0],box[1],A);
+    long double volume = dotProduct(A,C);
 
-    float L[3]={L1,L2,L3};
-    long double volume = L1*L2*L3;
+    // fftw_plan_with_nthreads(thread::hardware_concurrency());
     // omp_set_num_threads(thread::hardware_concurrency());
-    // omp_set_num_threads(8);
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     fftw_plan p;
     // #pragma omp critical (make_plan)
     p = fftw_plan_dft_3d(K,K,K, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-    // fftw_plan_with_nthreads(thread::hardware_concurrency());
 
     // Calculating the reciprocal vectors
     crossProduct(box[1],box[2],G[0]);
@@ -114,8 +109,9 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
             u[i][j]=K*dotProductu(PosIons[i],G[j]);
         }
     }
-
-    // Calculating the Q Matrix
+    // omp_set_num_threads(thread::hardware_concurrency());
+    // #pragma omp parallel for 
+    // Calculating the cofficients in the x,y and z directions for the Q Matrix
     for (int i = 0; i < natoms; i++){
         // for X direction
         for (int  k1 = 0; k1 < K; k1++){
@@ -150,26 +146,21 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
             }
         }
     }
+    // #pragma omp parallel for
+    // Final Q Matrix
     for (int j = 0; j < natoms; j++){
     if (natoms == 0)
         continue;
         for (int tx = 0; tx < K; tx++){
-            // long double x_dir = dir(u[j][0],tx, K, n, n_max);
-            // if (x_dir == 0)continue;
             if (x_direc[j][tx] == 0)continue;
 
             for (int ty = 0; ty < K; ty++){
-                // long double y_dir = dir(u[j][1],ty, K, n, n_max);
-                // if (y_dir == 0)continue;
                 if (y_direc[j][ty] == 0)continue;
 
                 for (int tz = 0; tz < K; tz++){
-                    // long double z_dir = dir(u[j][2],tz, K, n, n_max);
-                    // if (z_dir == 0)continue;
                     if (z_direc[j][tz] == 0)continue;
 
                     in[tx * (K * K) + ty * K + tz][0] += ion_charges[j] * x_direc[j][tx] * y_direc[j][ty] * z_direc[j][tz];
-                    // in[tx * (K * K) + ty * K + tz][0] += ion_charges[j] * x_dir * y_dir * z_dir;
                 }
             }
         }
@@ -182,28 +173,36 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     // fftw_cleanup_threads();
     long double energy=0;
     double constant=(M_PI*M_PI)/(betaa*betaa);
-    int i,j,k,ii,jj,kk;
+    // omp_set_num_threads(thread::hardware_concurrency());
+    // omp_set_num_threads(20);
     // collapse doesn't makes a difference here much; dynamic and runtime give the same time
+    int i,j,k,ii,jj,kk;
     // #pragma omp parallel for reduction(+: energy)
     // #pragma omp parallel for schedule(runtime) reduction(+: energy)
-    // #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(3)
+    // #pragma omp SIMD 
+    // #pragma omp parallel for simd 
+    // #pragma omp parallel for 
+    // #pragma omp parallel for simd schedule(static) reduction(+: energy) collapse(3)
     for (i = -M; i < M+1; i++){
         for (j = -M; j< M+1; j++){
             for (k = -M; k < M+1; k++){
+                if(i==0&&j==0&&k==0)continue;
+                m[0]=i*G[0][0]+j*G[1][0]+k*G[2][0];
+                m[1]=i*G[0][1]+j*G[1][1]+k*G[2][1];
+                m[2]=i*G[0][2]+j*G[1][2]+k*G[2][2];
+                long double m2=dotProduct(m,m);
                 if(i<0) ii=K+i;
                 else ii=i;
                 if(j<0) jj=K+j;
                 else  jj=j;
                 if(k<0) kk=K+k;
                 else  kk=k;
-                if(i==0&&j==0&&k==0)continue;
-                m[0]=i*G[0][0]+j*G[1][0]+k*G[2][0];
-                m[1]=i*G[0][1]+j*G[1][1]+k*G[2][1];
-                m[2]=i*G[0][2]+j*G[1][2]+k*G[2][2];
-                long double m2=dotProduct(m,m);
                 int temp=ii * (K * K) + jj * K + kk;
                 long double norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
+                // #pragma omp critical
                 energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K)*B(j,n,K)*B(k,n,K))/m2;
+                // cout<<energy<<" "<<i<<" "<<j<<" "<<k<<"\n";
+                // cout<<"\n";
             }
         }
     }
