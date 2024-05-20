@@ -34,7 +34,7 @@
         }
         reci_energy*=(2*M_PI)/(box[0][0]*box[1][1]*box[2][2]);
         return reci_energy;
-    }
+    }    
 
 #elif defined REDUCTION_REAL_IMG
     //* For reduction construct on making the separate loops for real and imaginary part*/
@@ -111,9 +111,7 @@
     double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K){
         int nthreads;
         double reci_energy=0;
-        omp_set_num_threads(NUM_THREADS);
-        // omp_set_num_threads(thread::hardware_concurrency());
-        // #pragma omp SIMD
+        omp_set_num_threads(thread::hardware_concurrency());
         for (int kx = -K; kx < K+1; kx++){
             for (int ky = -K; ky < K+1; ky++){
                 for (int kz = -K; kz < K+1; kz++){
