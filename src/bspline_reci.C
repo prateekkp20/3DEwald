@@ -86,15 +86,15 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     long double C[3]={box[2][0],box[2][1],box[2][2]};
     crossProduct(box[0],box[1],A);
     long double volume = dotProduct(A,C);
-    int nThreads = thread::hardware_concurrency(); 
+    // int nThreads = thread::hardware_concurrency(); 
     fftw_init_threads();
-    fftw_plan_with_nthreads(nThreads);
-    // fftw_plan_with_nthreads(thread::hardware_concurrency());
+    // fftw_plan_with_nthreads(nThreads);
+    fftw_plan_with_nthreads(thread::hardware_concurrency());
     // omp_set_num_threads(thread::hardware_concurrency());
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     fftw_plan p;
-    // #pragma omp critical (make_plan)
+    #pragma omp critical (make_plan)
     p = fftw_plan_dft_3d(K,K,K, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
 
     // Calculating the reciprocal vectors
@@ -112,17 +112,18 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
         }
     }
     // omp_set_num_threads(thread::hardware_concurrency());
-    // #pragma omp parallel for 
+    #pragma omp parallel for
     // Calculating the cofficients in the x,y and z directions for the Q Matrix
     for (int i = 0; i < natoms; i++){
         // for X direction
+        // #pragma omp parallel for
         for (int  k1 = 0; k1 < K; k1++){
             x_direc[i][k1]=0;
             for (int  n1 = -n_max; n1 < n_max+1; n1++){
                 x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K,n);
             }
         }
-
+        // #pragma omp parallel for
         // for Y direction
         for (int  k2 = 0; k2 < K; k2++){
             y_direc[i][k2]=0;
@@ -130,7 +131,7 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
                 y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K,n);
             }
         }
-
+        // #pragma omp parallel for
         // for Z direction
         for (int  k3 = 0; k3 < K; k3++){
             z_direc[i][k3]=0;
@@ -176,18 +177,18 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     long double energy=0;
     double constant=(M_PI*M_PI)/(betaa*betaa);
     // omp_set_num_threads(thread::hardware_concurrency());
-    // omp_set_num_threads(20);
-    // collapse doesn't makes a difference here much; dynamic and runtime give the same time
-    int i,j,k,ii,jj,kk;
-    // #pragma omp parallel for reduction(+: energy)
-    // #pragma omp parallel for schedule(runtime) reduction(+: energy)
+    // omp_set_num_threads(2);
+    // collapse doesn't makes a difference here much; dynamic and runtime give the same time 
+    int ii,jj,kk;
+    #pragma omp parallel for reduction(+: energy)
+    // #pragma omp parallel for schedule(runtime) reduction(+: energy) 
     // #pragma omp SIMD 
     // #pragma omp parallel for simd 
     // #pragma omp parallel for 
-    // #pragma omp parallel for simd schedule(static) reduction(+: energy) collapse(3)
-    for (i = -M; i < M+1; i++){
-        for (j = -M; j< M+1; j++){
-            for (k = -M; k < M+1; k++){
+    // #pragma omp parallel for simd schedule(runtime) reduction(+: energy) collapse(3)
+    for (int i = -M; i < M+1; i++){
+        for (int j = -M; j< M+1; j++){
+            for (int k = -M; k < M+1; k++){
                 if(i==0&&j==0&&k==0)continue;
                 m[0]=i*G[0][0]+j*G[1][0]+k*G[2][0];
                 m[1]=i*G[0][1]+j*G[1][1]+k*G[2][1];
