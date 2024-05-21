@@ -86,7 +86,9 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     long double C[3]={box[2][0],box[2][1],box[2][2]};
     crossProduct(box[0],box[1],A);
     long double volume = dotProduct(A,C);
-
+    int nThreads = thread::hardware_concurrency(); 
+    fftw_init_threads();
+    fftw_plan_with_nthreads(nThreads);
     // fftw_plan_with_nthreads(thread::hardware_concurrency());
     // omp_set_num_threads(thread::hardware_concurrency());
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
