@@ -28,7 +28,8 @@ OBJ_FILES=$(OBJ_DIR)/main.o \
 	  $(OBJ_DIR)/real_e.o \
 	  $(OBJ_DIR)/dist.o \
 	  $(OBJ_DIR)/reciprocal.o \
-	  $(OBJ_DIR)/bspline_reci.o
+	  $(OBJ_DIR)/bspline_reci.o \
+	  $(OBJ_DIR)/error.o
 
 # Make Targets
 all:$(OBJ_FILES) output
@@ -52,6 +53,8 @@ $(OBJ_DIR)/reciprocal.o:$(SRC_DIR)/reciprocal.C
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/reciprocal.o $(INC_LIST)
 $(OBJ_DIR)/bspline_reci.o:$(SRC_DIR)/bspline_reci.C
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/bspline_reci.o $(INC_LIST)
+$(OBJ_DIR)/error.o:$(SRC_DIR)/error.C
+	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/error.o $(INC_LIST)
 
 $(RAT_OUTPUT):$(OBJ_FILES)
 	$(CC) $(OPTFLAGS) $(INC_LIST) -o $(RAT_OUTPUT) $(OBJ_FILES) $(FFTFLAGS)
