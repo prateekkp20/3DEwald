@@ -117,3 +117,22 @@
 #         sed -i "s/vector\<int\> K\=\{$((grid-1)*10)\,60\,60\}\;/"
 #     done
 # done
+
+## code for different threads experiment but same box, same grid and order
+echo "# of Threads,Time for FFTW" > run/may22_exp1.csv
+for i in {1..24}
+do
+    sed -i "s/\#define NUM_THREADS $((i-1)) /\#define NUM_THREADS $i /g" inc/const.h
+    echo -n $i >> run/may22_exp1.csv
+    for run in {1..5}
+    do
+        make clean > output.txt
+        make >> output.txt
+        cd run/
+        ./coulomb.x >> may22_exp1.csv
+        echo " " >> may22_exp1.csv
+        cd ..
+    done
+    echo " " >> run/may22_exp1.csv
+    echo " " >> run/may22_exp1.csv
+done

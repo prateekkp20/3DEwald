@@ -56,9 +56,7 @@ void crossProduct(float *v_A, float *v_B,long double *out){
 
 double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K, int M, int n){
     // n: order of b-spline interpolation
-    // fftw_init_threads();
-    // cout<<fixed<<setprecision(10);
-    // initializing the new variables
+   // initializing the new variables
     long double G[3][3], m[3];
     long double **u,**x_direc, **y_direc, **z_direc;
     u= new long double * [natoms];
@@ -86,16 +84,18 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     long double C[3]={box[2][0],box[2][1],box[2][2]};
     crossProduct(box[0],box[1],A);
     long double volume = dotProduct(A,C);
+    // fftw_init_threads();
     // int nThreads = thread::hardware_concurrency(); 
-    fftw_init_threads();
     // fftw_plan_with_nthreads(nThreads);
-    fftw_plan_with_nthreads(thread::hardware_concurrency());
+    // fftw_plan_with_nthreads(thread::hardware_concurrency());
+    // fftw_plan_with_nthreads(NUM_THREADS);
     // omp_set_num_threads(thread::hardware_concurrency());
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     fftw_plan p;
-    #pragma omp critical (make_plan)
+    // #pragma omp critical (make_plan)
     p = fftw_plan_dft_3d(K,K,K, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    omp_set_num_threads(NUM_THREADS);
 
     // Calculating the reciprocal vectors
     crossProduct(box[1],box[2],G[0]);
@@ -105,6 +105,7 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
         for (int q = 0; q < 3; q++)
             G[x][q] /= volume;
 
+    #pragma omp parallel for simd
     // Calculating the fractional coordinates
     for (int i = 0; i < natoms; i++){
         for (int j = 0; j < 3; j++){
@@ -112,18 +113,16 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
         }
     }
     // omp_set_num_threads(thread::hardware_concurrency());
-    #pragma omp parallel for
+    #pragma omp parallel for simd
     // Calculating the cofficients in the x,y and z directions for the Q Matrix
     for (int i = 0; i < natoms; i++){
         // for X direction
-        // #pragma omp parallel for
         for (int  k1 = 0; k1 < K; k1++){
             x_direc[i][k1]=0;
             for (int  n1 = -n_max; n1 < n_max+1; n1++){
                 x_direc[i][k1]+=M_n(u[i][0]-k1-n1*K,n);
             }
         }
-        // #pragma omp parallel for
         // for Y direction
         for (int  k2 = 0; k2 < K; k2++){
             y_direc[i][k2]=0;
@@ -131,7 +130,6 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
                 y_direc[i][k2]+=M_n(u[i][1]-k2-n2*K,n);
             }
         }
-        // #pragma omp parallel for
         // for Z direction
         for (int  k3 = 0; k3 < K; k3++){
             z_direc[i][k3]=0;
@@ -140,7 +138,6 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
             }
         }
     }
-
     // initializing the "in" vector with zero values
     for (int tx = 0; tx < K; tx++){
         for (int ty = 0; ty < K; ty++){
@@ -149,7 +146,7 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
             }
         }
     }
-    // #pragma omp parallel for
+    // #pragma omp for collapse(1)
     // Final Q Matrix
     for (int j = 0; j < natoms; j++){
     if (natoms == 0)
@@ -170,29 +167,28 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     }
 
     fftw_execute(p);
-    // #pragma omp critical (FFTW)
     fftw_destroy_plan(p);
     fftw_cleanup();
-    // fftw_cleanup_threads();
+    fftw_cleanup_threads();
     long double energy=0;
     double constant=(M_PI*M_PI)/(betaa*betaa);
     // omp_set_num_threads(thread::hardware_concurrency());
     // omp_set_num_threads(2);
     // collapse doesn't makes a difference here much; dynamic and runtime give the same time 
     int ii,jj,kk;
-    #pragma omp parallel for reduction(+: energy)
+    // #pragma omp parallel for reduction(+: energy)
     // #pragma omp parallel for schedule(runtime) reduction(+: energy) 
     // #pragma omp SIMD 
-    // #pragma omp parallel for simd 
     // #pragma omp parallel for 
-    // #pragma omp parallel for simd schedule(runtime) reduction(+: energy) collapse(3)
+    // #pragma omp parallel for 
+    #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(3)
     for (int i = -M; i < M+1; i++){
         for (int j = -M; j< M+1; j++){
             for (int k = -M; k < M+1; k++){
                 if(i==0&&j==0&&k==0)continue;
-                m[0]=i*G[0][0]+j*G[1][0]+k*G[2][0];
-                m[1]=i*G[0][1]+j*G[1][1]+k*G[2][1];
-                m[2]=i*G[0][2]+j*G[1][2]+k*G[2][2];
+                for (int t = 0; t < 3; t++)                {
+                    m[t]=i*G[0][t]+j*G[1][t]+k*G[2][t];    
+                }                
                 long double m2=dotProduct(m,m);
                 if(i<0) ii=K+i;
                 else ii=i;
@@ -202,7 +198,6 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
                 else  kk=k;
                 int temp=ii * (K * K) + jj * K + kk;
                 long double norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
-                // #pragma omp critical
                 energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K)*B(j,n,K)*B(k,n,K))/m2;
                 // cout<<energy<<" "<<i<<" "<<j<<" "<<k<<"\n";
                 // cout<<"\n";
