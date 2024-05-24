@@ -9,6 +9,43 @@
 
 // print coordinates in readable format
 
+void print_lammps_input_file(double **PosIons, float *chg, int natoms, float **boxcell, int n_atomtype, int *natoms_type, string *atomtype, int printtrj, int MDstep, char printmode, string filename){
+	FILE *pFile;
+
+	pFile = fopen(filename.c_str(), &printmode);
+
+	fprintf(pFile, "LAMMPS data file via write_data\n\n");
+	
+	fprintf(pFile,"%d atoms\n",natoms);
+	fprintf(pFile,"%d atom types\n\n",n_atomtype);
+
+	fprintf(pFile,"0 %.2f xlo xhi\n",boxcell[0][0]);
+	fprintf(pFile,"0 %.2f ylo yhi\n",boxcell[1][1]);
+	fprintf(pFile,"0 %.2f zlo zhi\n\n",boxcell[2][2]);
+
+	fprintf(pFile,"Masses\n");
+	fprintf(pFile,"1 22.989769\n");
+	fprintf(pFile,"2 35.453\n\n");
+
+	fprintf(pFile,"Atoms # charge\n\n");
+	
+	// Printing the coordinates
+	int count=1;
+	for (int i = 0; i < n_atomtype; i++){
+		for (int j = 0; j < natoms_type[i]; j++){
+			fprintf(pFile, "%d %d %.0f %11.16f %11.16f %11.16f \n",count, i+1, chg[i], PosIons[count-1][0], PosIons[count-1][1], PosIons[count-1][2]);
+			count++;	
+		}
+	}
+
+	// Printing the velocities, for now we are printing for still atoms, so velocities are zero, we can also print that using the input velocities matrix
+	fprintf(pFile,"\nVelocities\n");
+	for (int i = 1; i < count; i++){
+		fprintf(pFile, "%d 0 0 0\n",i);
+	}
+	fclose(pFile);
+}
+
 void print_coor(double **PosIons, int natoms, float **boxcell, int n_atomtype, int *natoms_type, string *atomtype, int printtrj, int MDstep, char printmode, string filename){
 
 	FILE *pFile;
