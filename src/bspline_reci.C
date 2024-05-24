@@ -3,6 +3,8 @@
 
 #define REAL 0
 #define IMAG 1
+// Disable this declaration if openmp parallelization is not required, would not be helpful for smaller systems
+#define ENABLE_OMP 11
 const long double pi = M_PI;
 
 long double M_n(long double u, int n){
@@ -84,18 +86,10 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     long double C[3]={box[2][0],box[2][1],box[2][2]};
     crossProduct(box[0],box[1],A);
     long double volume = dotProduct(A,C);
-    // fftw_init_threads();
-    // int nThreads = thread::hardware_concurrency(); 
-    // fftw_plan_with_nthreads(nThreads);
-    // fftw_plan_with_nthreads(thread::hardware_concurrency());
-    // fftw_plan_with_nthreads(NUM_THREADS);
-    // omp_set_num_threads(thread::hardware_concurrency());
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *K*K*K);
     fftw_plan p;
-    // #pragma omp critical (make_plan)
     p = fftw_plan_dft_3d(K,K,K, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-    omp_set_num_threads(NUM_THREADS);
 
     // Calculating the reciprocal vectors
     crossProduct(box[1],box[2],G[0]);
@@ -104,16 +98,19 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     for (int x = 0; x < 3; x++)
         for (int q = 0; q < 3; q++)
             G[x][q] /= volume;
-
-    #pragma omp parallel for simd
+    #if defined ENABLE_OMP
+        omp_set_num_threads(thread::hardware_concurrency());
+        #pragma omp parallel for simd
+    #endif
     // Calculating the fractional coordinates
     for (int i = 0; i < natoms; i++){
         for (int j = 0; j < 3; j++){
             u[i][j]=K*dotProductu(PosIons[i],G[j]);
         }
     }
-    // omp_set_num_threads(thread::hardware_concurrency());
-    #pragma omp parallel for simd
+    #if defined ENABLE_OMP
+        #pragma omp parallel for simd
+    #endif
     // Calculating the cofficients in the x,y and z directions for the Q Matrix
     for (int i = 0; i < natoms; i++){
         // for X direction
@@ -138,6 +135,9 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
             }
         }
     }
+    #if defined ENABLE_OMP
+        #pragma omp for collapse(3) 
+    #endif
     // initializing the "in" vector with zero values
     for (int tx = 0; tx < K; tx++){
         for (int ty = 0; ty < K; ty++){
@@ -146,7 +146,9 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
             }
         }
     }
-    // #pragma omp for collapse(1)
+    #if defined ENABLE_OMP
+        #pragma omp for simd
+    #endif
     // Final Q Matrix
     for (int j = 0; j < natoms; j++){
     if (natoms == 0)
@@ -169,19 +171,13 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
     fftw_execute(p);
     fftw_destroy_plan(p);
     fftw_cleanup();
-    fftw_cleanup_threads();
     long double energy=0;
     double constant=(M_PI*M_PI)/(betaa*betaa);
-    // omp_set_num_threads(thread::hardware_concurrency());
-    // omp_set_num_threads(2);
     // collapse doesn't makes a difference here much; dynamic and runtime give the same time 
     int ii,jj,kk;
-    // #pragma omp parallel for reduction(+: energy)
-    // #pragma omp parallel for schedule(runtime) reduction(+: energy) 
-    // #pragma omp SIMD 
-    // #pragma omp parallel for 
-    // #pragma omp parallel for 
-    #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(3)
+    #if defined ENABLE_OMP
+        #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(3)
+    #endif
     for (int i = -M; i < M+1; i++){
         for (int j = -M; j< M+1; j++){
             for (int k = -M; k < M+1; k++){
@@ -199,8 +195,6 @@ double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, f
                 int temp=ii * (K * K) + jj * K + kk;
                 long double norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
                 energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,K)*B(j,n,K)*B(k,n,K))/m2;
-                // cout<<energy<<" "<<i<<" "<<j<<" "<<k<<"\n";
-                // cout<<"\n";
             }
         }
     }
