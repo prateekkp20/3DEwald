@@ -14,6 +14,7 @@ INC_LIST= -I ./inc \
 # Source Folders
 SRC_DIR=./src
 
+#For if ./obj is not present: Types of Prerequisites (https://www.gnu.org/software/make/manual/html_node/Prerequisite-Types.html) 
 # Object folders
 OBJ_DIR=./obj
 
