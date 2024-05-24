@@ -119,20 +119,46 @@
 # done
 
 ## code for different threads experiment but same box, same grid and order
-echo "# of Threads,Time for FFTW" > run/may22_exp1.csv
+echo "# of Threads,Time for FFTW" > run/may22_exp5.csv
 for i in {1..24}
 do
     sed -i "s/\#define NUM_THREADS $((i-1)) /\#define NUM_THREADS $i /g" inc/const.h
-    echo -n $i >> run/may22_exp1.csv
+    echo -n $i >> run/may22_exp5.csv
     for run in {1..5}
     do
         make clean > output.txt
         make >> output.txt
         cd run/
-        ./coulomb.x >> may22_exp1.csv
-        echo " " >> may22_exp1.csv
+        ./coulomb.x >> may22_exp5.csv
+        echo " " >> may22_exp5.csv
         cd ..
     done
-    echo " " >> run/may22_exp1.csv
-    echo " " >> run/may22_exp1.csv
+    echo " " >> run/may22_exp5.csv
+    echo " " >> run/may22_exp5.csv
 done
+
+
+## code for grids and order experiment but same box, same threads
+# echo "# of Grids,Order of Interpolation,Time for FFTW,Relative Error" > run/may22_exp3.csv
+# for grids in {1..8}
+# do
+#     for order in {3..10}
+#     do
+#     g=$((40+10*grids))
+#     sed -i "s/\#define GRID_SIZE $((40+10*grids-10)) /\#define GRID_SIZE $((40+10*grids)) /g" inc/const.h
+#     sed -i "s/\#define BSPLINE_ORDER $((order-1)) /\#define BSPLINE_ORDER $order /g" inc/const.h
+#     echo -n "${g},${order}" >> run/may22_exp3.csv
+#     for run in {1..5}
+#         do 
+#             # echo $grids
+#             make clean > output.txt
+#             make >> output.txt
+#             cd run/
+#             ./coulomb.x >> may22_exp3.csv
+#             echo " " >> may22_exp3.csv
+#             cd ..
+#         done
+#     echo " " >> run/may22_exp3.csv
+#     echo " " >> run/may22_exp3.csv
+#     done
+# done
