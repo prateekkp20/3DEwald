@@ -42,7 +42,7 @@ int main(int argc, char **argv){
 	InputIn>>garbage>>garbage;
 	getline(InputIn, garbage);
 
-	// cout<<"Project Name: "<<garbage<<endl;
+	cout<<"Project Name: "<<garbage<<endl;
 
 	InputIn>>garbage>>garbage;
 	InputIn>>posfile;
@@ -118,27 +118,27 @@ int main(int argc, char **argv){
 
 	/////////////////////////////// ewald input file /////////
 
-	ifstream EWALDIn("ewald.in",ios::in);
-	if(!EWALDIn){
-		cerr << "File EWALDIn could not be opened" <<endl;
-		exit(1);
-	}
+	// ifstream EWALDIn("ewald.in",ios::in);
+	// if(!EWALDIn){
+	// 	cerr << "File EWALDIn could not be opened" <<endl;
+	// 	exit(1);
+	// }
 
-	int gx, gy, gz, nd;
+	// int gx, gy, gz, nd;
 
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>gx;
+	// EWALDIn>>garbage>>garbage;
+	// EWALDIn>>gx;
 
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>gy;                                    
+	// EWALDIn>>garbage>>garbage;
+	// EWALDIn>>gy;                                    
 
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>gz;                             
+	// EWALDIn>>garbage>>garbage;
+	// EWALDIn>>gz;                             
 
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>nd;                             
+	// EWALDIn>>garbage>>garbage;
+	// EWALDIn>>nd;                             
 
-	EWALDIn.close();
+	// EWALDIn.close();
 
 	// cout<<"Initial positions read from the file: "<<posfile<<endl;
 
@@ -260,54 +260,48 @@ int main(int argc, char **argv){
 	}
 
 	// print_carcoor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "CONTCAR");
+	// print_coor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "COOR");
+	// print_lammps_input_file(PosIons, chg, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "poscar7.data");
 	float a=5.42/boxcell[0][0];
 
 	// chrono::time_point<std::chrono::system_clock> start, end;
 	// start = chrono::system_clock::now();
-	// double selfenergy=selfe(n_atomtype, natoms_type, chg, a)*unitzer;
-	// cout<<fixed<<setprecision(5)<<","<<selfenergy<<",";
-	// cout<<fixed<<setprecision(5)<<"Self Energy: "<<selfenergy<<" Kcal/mol"<<"\n";
+	double selfenergy=selfe(n_atomtype, natoms_type, chg, a)*unitzer;
+	cout<<fixed<<setprecision(5)<<"Self Energy: "<<selfenergy<<" Kcal/mol"<<"\n\n";
 	// end = chrono::system_clock::now();
 	// chrono::duration<double> elapsed_seconds = end - start;
     // time_t end_time = std::chrono::system_clock::to_time_t(end);
-	// cout<<fixed<<setprecision(8)<<elapsed_seconds.count()<<",";
-	// cout<<fixed<<setprecision(8)<< "elapsed time: " << elapsed_seconds.count() << " sec\n\n";
+	// cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds.count() << " sec\n\n";
 	
-	// chrono::time_point<std::chrono::system_clock> start1, end1;
-	// start1 = chrono::system_clock::now();
+	chrono::time_point<std::chrono::system_clock> start1, end1;
+	start1 = chrono::system_clock::now();
 	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell,6)*unitzer;
-	// // cout<<fixed<<setprecision(5)<<","<<recienergy<<",";
-	// cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
-	// end1 = chrono::system_clock::now();
-	// chrono::duration<double> elapsed_seconds1 = end1- start1;
-    // time_t end_time1 = std::chrono::system_clock::to_time_t(end1);
-	// // cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds1.count() << " sec\n\n";
-	// // cout<<fixed<<setprecision(8)<<elapsed_seconds1.count()<<",";
-	// cout<< "Elapsed time: " << elapsed_seconds1.count() << " sec\n";
+	cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
+	end1 = chrono::system_clock::now();
+	chrono::duration<double> elapsed_seconds1 = end1- start1;
+    time_t end_time1 = std::chrono::system_clock::to_time_t(end1);
+	cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds1.count() << " sec\n\n";
 
-	// chrono::time_point<std::chrono::system_clock> start2, end2;
-	// start2 = chrono::system_clock::now();
-	// double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell)*unitzer;
-	// // cout<<fixed<<setprecision(5)<<realenergy<<",";
-	// cout<<fixed<<setprecision(5)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
-	// end2 = chrono::system_clock::now();
-	// chrono::duration<double> elapsed_seconds2 = end2 - start2;
-    // time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
-	// // cout<<fixed<<setprecision(8)<<elapsed_seconds2.count()<<",";
-	// cout<< "elapsed time: " << elapsed_seconds2.count() << " sec\n\n";
+	chrono::time_point<std::chrono::system_clock> start2, end2;
+	start2 = chrono::system_clock::now();
+	double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell)*unitzer;
+	cout<<fixed<<setprecision(5)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
+	end2 = chrono::system_clock::now();
+	chrono::duration<double> elapsed_seconds2 = end2 - start2;
+    time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
+	cout<< "Elapsed time: " << elapsed_seconds2.count() << " sec\n\n";
 
 	chrono::time_point<std::chrono::system_clock> start3, end3;
 	start3 = chrono::system_clock::now();
 	double recienergy_bs=bspline(PosIons, ion_charges, natoms, a, boxcell,GRID_SIZE,6,BSPLINE_ORDER)*unitzer;
-	// cout<<fixed<<setprecision(5)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n";
+	cout<<fixed<<setprecision(5)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n";
 	end3 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds3 = end3 - start3;
     time_t end_time3 = std::chrono::system_clock::to_time_t(end3);
-	cout<<fixed<<setprecision(8)<<",,"<<elapsed_seconds3.count();
-	// cout<< "Elapsed time: " << elapsed_seconds2.count() << " sec\n";
+	cout<< "Elapsed time: " << elapsed_seconds3.count() << " sec\n\n";
 
-	cout<<fixed<<setprecision(10)<<","<< error(recienergy,recienergy_bs);
-	// cout<<fixed<<setprecision(10)<<"Relative Error: "<< error(recienergy,recienergy_bs)<<"\n";
+	// cout<<fixed<<setprecision(10)<<","<< error(recienergy,recienergy_bs);
+	cout<<fixed<<setprecision(10)<<"Relative Error with FFTW: "<< error(recienergy,recienergy_bs)<<"\n";
 /* using std::chrono::duration_cast; */
 /* using HR = std::chrono::high_resolution_clock; */
 /* using HRTimer = HR::time_point; */
@@ -323,7 +317,7 @@ int main(int argc, char **argv){
 
 	// for benchmarking using the lammps data
 	// cout<<fixed<<setprecision(5)<<" "<<realenergy<<" ";
-	// cout<<fixed<<setprecision(5)<<selfenergy+recienergy<<" ";
+	// cout<<fixed<<setprecision(5)<<selfenergy+recienergy<<"\n";
 	// cout<<fixed<<setprecision(5)<<selfenergy+recienergy+realenergy<<" ";
 
 	// delete dynamic variables 
