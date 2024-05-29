@@ -23,7 +23,7 @@ void print_lammps_input_file(double **PosIons, float *chg, int natoms, float **b
 	fprintf(pFile,"0 %.2f ylo yhi\n",boxcell[1][1]);
 	fprintf(pFile,"0 %.2f zlo zhi\n\n",boxcell[2][2]);
 
-	fprintf(pFile,"Masses\n");
+	fprintf(pFile,"Masses\n\n");
 	fprintf(pFile,"1 22.989769\n");
 	fprintf(pFile,"2 35.453\n\n");
 
@@ -39,7 +39,7 @@ void print_lammps_input_file(double **PosIons, float *chg, int natoms, float **b
 	}
 
 	// Printing the velocities, for now we are printing for still atoms, so velocities are zero, we can also print that using the input velocities matrix
-	fprintf(pFile,"\nVelocities\n");
+	fprintf(pFile,"\nVelocities\n\n");
 	for (int i = 1; i < count; i++){
 		fprintf(pFile, "%d 0 0 0\n",i);
 	}
