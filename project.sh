@@ -164,19 +164,21 @@ clear
 #     done
 # done
 
-make clean > output.txt
-make >> output.txt
-echo "Lz,Self Energy,Reciprocal Energy,Real Energy,J(M S),Total,Error(cpp),Error(lammps)" > run/ew3dc/out.csv
-for ((i=50;i<=250;i=i+1))
+makeOutput='make.txt'
+make clean > $makeOutput
+make >> $makeOutput
+csvFile='ew3dc/kcl168.csv'
+cd run/
+echo "Lz,Self Energy,Reciprocal Energy,Real Energy,J(M S),Total,Error(cpp),Error(lammps)" > $csvFile
+for ((i=35;i<=300;i=i+1))
 do
     for ((j=0;j<=9;j=j+1))
     do
-        sed -i "5s/.*/     0.0000000000000000    0.0000000000000000   ${i}.${j}00000000000000/" run/fifty/POSCAR.1 | bc
-        cd run/
-        echo -n $i.$j >> ew3dc/out.csv  | bc
-        ./coulomb.x >> ew3dc/out.csv
-        echo " " >> ew3dc/out.csv
-        cd ..
+        sed -i "5s/.*/     0.0000000000000000    0.0000000000000000   ${i}.${j}00000000000000/" POSCAR.kcl168 | bc
+        echo -n $i.$j >> $csvFile | bc
+        ./coulomb.x >> $csvFile
+        echo " " >> $csvFile
     done
 done
-rm output.txt
+cd ..
+rm $makeOutput
