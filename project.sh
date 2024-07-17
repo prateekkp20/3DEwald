@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+clear
 
 # # echo "File,Reciprocal,,Real" > parallel1.csv
 # i=5
@@ -111,7 +112,7 @@
 
 # for order in {2..7}
 # do 
-#     sed -i "s/int n\=$((order-1))\;/int n\=$order\; /g" Bspline_fftw.cpp
+    # sed -i "s/int n\=$((order-1))\;/int n\=$order\; /g" Bspline_fftw.cpp
 #     for grid in {2..7}
 #     do 
 #         sed -i "s/vector\<int\> K\=\{$((grid-1)*10)\,60\,60\}\;/"
@@ -119,23 +120,23 @@
 # done
 
 ## code for different threads experiment but same box, same grid and order
-echo "# of Threads,Time for FFTW" > run/may22_exp5.csv
-for i in {1..24}
-do
-    sed -i "s/\#define NUM_THREADS $((i-1)) /\#define NUM_THREADS $i /g" inc/const.h
-    echo -n $i >> run/may22_exp5.csv
-    for run in {1..5}
-    do
-        make clean > output.txt
-        make >> output.txt
-        cd run/
-        ./coulomb.x >> may22_exp5.csv
-        echo " " >> may22_exp5.csv
-        cd ..
-    done
-    echo " " >> run/may22_exp5.csv
-    echo " " >> run/may22_exp5.csv
-done
+# echo "# of Threads,Time for FFTW" > run/may22_exp5.csv
+# for i in {1..24}
+# do
+#     sed -i "s/\#define NUM_THREADS $((i-1)) /\#define NUM_THREADS $i /g" inc/const.h
+#     echo -n $i >> run/may22_exp5.csv
+#     for run in {1..5}
+#     do
+#         make clean > output.txt
+#         make >> output.txt
+#         cd run/
+#         ./coulomb.x >> may22_exp5.csv
+#         echo " " >> may22_exp5.csv
+#         cd ..
+#     done
+#     echo " " >> run/may22_exp5.csv
+#     echo " " >> run/may22_exp5.csv
+# done
 
 
 ## code for grids and order experiment but same box, same threads
@@ -145,7 +146,7 @@ done
 #     for order in {3..10}
 #     do
 #     g=$((40+10*grids))
-#     sed -i "s/\#define GRID_SIZE $((40+10*grids-10)) /\#define GRID_SIZE $((40+10*grids)) /g" inc/const.h
+    # sed -i "s/\#define GRID_SIZE $((40+10*grids-10)) /\#define GRID_SIZE $((40+10*grids)) /g" inc/const.h
 #     sed -i "s/\#define BSPLINE_ORDER $((order-1)) /\#define BSPLINE_ORDER $order /g" inc/const.h
 #     echo -n "${g},${order}" >> run/may22_exp3.csv
 #     for run in {1..5}
@@ -162,3 +163,20 @@ done
 #     echo " " >> run/may22_exp3.csv
 #     done
 # done
+
+make clean > output.txt
+make >> output.txt
+echo "Lz,Self Energy,Reciprocal Energy,Real Energy,J(M S),Total,Error(cpp),Error(lammps)" > run/ew3dc/out.csv
+for ((i=50;i<=250;i=i+1))
+do
+    for ((j=0;j<=9;j=j+1))
+    do
+        sed -i "5s/.*/     0.0000000000000000    0.0000000000000000   ${i}.${j}00000000000000/" run/fifty/POSCAR.1 | bc
+        cd run/
+        echo -n $i.$j >> ew3dc/out.csv  | bc
+        ./coulomb.x >> ew3dc/out.csv
+        echo " " >> ew3dc/out.csv
+        cd ..
+    done
+done
+rm output.txt

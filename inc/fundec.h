@@ -80,3 +80,5 @@ void crossProduct(float *v_A, float *v_B, long double *out);
 double bspline(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K, int M, int n);
 
 long double error(long double a, long double b);
+
+double dipoleCorrection(double **PosIons, float *ion_charges, int natoms, float **box);
