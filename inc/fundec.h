@@ -59,7 +59,7 @@ void CalDens(double **PosIons, int natoms, float **boxcell, int n_atomtype, int 
 
 double selfe(int n_atomtype, int *natoms_type, float *chargs, float betaa);
 
-double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box);
+double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, double cutoff);
 
 double dist(double **PosIons, int atom1, int atom2, float **box);
 
