@@ -1,6 +1,5 @@
 #include "libinclude.h"
 #include "fundec.h"
-// #include "omp.h"
 #include "const.h"
 
 #define PAD 8
@@ -13,7 +12,7 @@
 
 #if defined FALSE_SHARING_AND_PADDING
 //* false sharing and padding
-    double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, double cutoff){
+    double real_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         int nthreads;
         double sum[NUM_THREADS][PAD],real_energy=0;
     //     omp_set_num_threads(NUM_THREADS);
@@ -27,10 +26,9 @@
             int i;
             for (i = id,sum[id][0]=0; i < natoms; i+=nthrds){
                 for (int j = 0; j < i; j++){
-                    if(i!=j){
                         double modR=dist(PosIons,i,j,box);
+                        if(modR>cutoff)continue;
                         sum[id][0]+=(ion_charges[i]*ion_charges[j]*erfc(betaa*modR))/modR;
-                    }
                 }
             }
         }
@@ -42,7 +40,7 @@
 
 #elif defined SYNCHRONIZATION_CONSTRUCT
 //* synchromization construct critical
-    double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, double cutoff){
+    double real_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         int nthreads;
         double real_energy=0;
     // omp_set_num_threads(NUM_THREADS);
@@ -58,10 +56,9 @@
 
             for (i = id,sum=0; i < natoms; i+=nthrds){
                 for (int j = 0; j < i; j++){
-                    if(i!=j){
                         double modR=dist(PosIons,i,j,box); // calculating the minimum distance between the given i and j atoms
+                        if(modR>cutoff)continue;
                         sum+=(ion_charges[i]*ion_charges[j]*erfc(betaa*modR))/modR;
-                    }
                 }
             }
             #pragma omp critical // this section stops the all other threads and first performs this action
@@ -72,14 +69,13 @@
 
 #elif defined NAIVE
 //*Original loop, no parallelization
-    double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, double cutoff){
+    double real_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         double real_energy=0;
         for (int i = 0; i < natoms; i++){
             for (int j = 0; j < i; j++){
-                if(i!=j){
                     double modR=dist(PosIons,i,j,box);
+                    if(modR>cutoff)continue;
                     real_energy+=(ion_charges[i]*ion_charges[j]*erfc(betaa*modR))/modR;
-                }
             }
         }
         
@@ -88,7 +84,7 @@
 
 #elif defined REDUCTION
 //* For reduction construct
-    double real_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, double cutoff){
+    double real_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         double real_energy=0;
         // omp_set_num_threads(NUM_THREADS);
         omp_set_num_threads(thread::hardware_concurrency());
@@ -96,11 +92,9 @@
             for (int i = 0; i < natoms; i++){
                 #pragma omp SIMD
                 for (int j = 0; j < i; j++){
-                    if(i!=j){
                         double modR=dist(PosIons,i,j,box);
                         if(modR>cutoff)continue;
                         real_energy+=(ion_charges[i]*ion_charges[j]*erfc(betaa*modR))/modR;
-                    }
                 }
             }
         
