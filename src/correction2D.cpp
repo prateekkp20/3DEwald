@@ -2,14 +2,14 @@
 #include "fundec.h"
 #include "const.h"
 
-double dipoleCorrection(double **PosIons, float *ion_charges, int natoms, float **box){
+double dipoleCorrection(double **PosIons, double *ion_charges, int natoms, double **box){
     // Volume Calculations
-    long double A[3];
-    long double C[3]={box[2][0],box[2][1],box[2][2]};
+    double A[3];
+    double C[3]={box[2][0],box[2][1],box[2][2]};
     crossProduct(box[0],box[1],A);
-    long double volume = dotProduct(A,C);
+    double volume = dotProduct(A,C);
 
-    long double M[3]={0,0,0};
+    double M[3]={0,0,0};
     for (int i = 0; i < natoms; i++){
         for(int j = 0; j < 3; j++){
             M[j]+=ion_charges[i]*PosIons[i][j];
