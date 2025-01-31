@@ -1,7 +1,5 @@
 #include "libinclude.h"
-// #include "fundec.h"
 #include "const.h"
-// #include "omp.h"
 
 //Uncomment only one of them
 // #define NAIVE 1
@@ -12,7 +10,7 @@
 
 #if defined NAIVE
     //*Original loop, no parallelization
-    double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K){
+    double reci_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
         double reci_energy=0;
         for (int kx = -K; kx < K+1; kx++){
             for (int ky = -K; ky < K+1; ky++){
@@ -38,7 +36,7 @@
 
 #elif defined REDUCTION_REAL_IMG
     //* For reduction construct on making the separate loops for real and imaginary part*/
-    double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K){
+    double reci_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
         double reci_energy=0;
         for (int kx = -K; kx < K+1; kx++){
             for (int ky = -K; ky < K+1; ky++){
@@ -77,7 +75,7 @@
 #elif defined REDUCTION_KVECTOR
     //* For reduction construct on K vector*/
     /*There is no workaround for the complex reduction, we have to do the ugly work*/
-    double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K){
+    double reci_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
         double reci_energy=0;
         // omp_set_num_threads(NUM_THREADS);
         omp_set_num_threads(thread::hardware_concurrency());
@@ -108,7 +106,7 @@
 
 #elif defined SYNCHRONIZATION_CONSTRUCT
     //* synchronization construct critical
-    double reci_energy(double **PosIons, float *ion_charges, int natoms, double betaa, float **box, int K){
+    double reci_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
         int nthreads;
         double reci_energy=0;
         omp_set_num_threads(thread::hardware_concurrency());
