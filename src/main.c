@@ -118,27 +118,27 @@ int main(int argc, char **argv){
 
 	/////////////////////////////// ewald input file /////////
 
-	// ifstream EWALDIn("ewald.in",ios::in);
-	// if(!EWALDIn){
-	// 	cerr << "File EWALDIn could not be opened" <<endl;
-	// 	exit(1);
-	// }
+	ifstream EWALDIn("ewald.in",ios::in);
+	if(!EWALDIn){
+		cerr << "File EWALDIn could not be opened" <<endl;
+		exit(1);
+	}
 
-	// int gx, gy, gz, nd;
+	int gx, gy, gz, nd;
 
-	// EWALDIn>>garbage>>garbage;
-	// EWALDIn>>gx;
+	EWALDIn>>garbage>>garbage;
+	EWALDIn>>gx;
 
-	// EWALDIn>>garbage>>garbage;
-	// EWALDIn>>gy;                                    
+	EWALDIn>>garbage>>garbage;
+	EWALDIn>>gy;                                    
 
-	// EWALDIn>>garbage>>garbage;
-	// EWALDIn>>gz;                             
+	EWALDIn>>garbage>>garbage;
+	EWALDIn>>gz;                             
 
-	// EWALDIn>>garbage>>garbage;
-	// EWALDIn>>nd;                             
+	EWALDIn>>garbage>>garbage;
+	EWALDIn>>nd;                             
 
-	// EWALDIn.close();
+	EWALDIn.close();
 
 	// cout<<"Initial positions read from the file: "<<posfile<<endl;
 
@@ -182,10 +182,10 @@ int main(int argc, char **argv){
 	natoms=0;
 
 	//Creating 3x3 boxcell array
-	float **boxcell;
-	boxcell=new float * [3];
+	double **boxcell;
+	boxcell=new double * [3];
 	for(i = 0; i<3;i++){
-		boxcell[i]=new float [3];
+		boxcell[i]=new double [3];
 	}
 
 	getline(PosIn, garbage); //read overall scaling factor
@@ -249,8 +249,8 @@ int main(int argc, char **argv){
 	CHARGEIn.close();
 
 	//creating the charge array for each atom present in the unit cell ////////////////////////////////////
-	float *ion_charges;
-	ion_charges=new float [natoms];
+	double *ion_charges;
+	ion_charges=new double [natoms];
 	int c=0;
 	for (int i = 0; i < n_atomtype; i++){
 		for (int j = 0; j < natoms_type[i]; j++){
@@ -262,8 +262,10 @@ int main(int argc, char **argv){
 	// print_carcoor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "CONTCAR");
 	// print_coor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "COOR");
 	// print_lammps_input_file(PosIons, chg, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "out.data");
-	double a=5.42/boxcell[0][0];
-	double cutoff = boxcell[0][0]/2;
+
+	double Lmin=min(boxcell[0][0],min(boxcell[1][1],boxcell[2][2]));
+	double a=5.42/Lmin;
+	double cutoff = Lmin/2;
 
 	double selfenergy=selfe(n_atomtype, natoms_type, chg, a)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Self Energy: "<<selfenergy<<" Kcal/mol"<<"\n\n";
@@ -280,23 +282,20 @@ int main(int argc, char **argv){
 	chrono::time_point<std::chrono::system_clock> start2, end2;
 	start2 = chrono::system_clock::now();
 	double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell,cutoff)*unitzer;
-	// cout<<fixed<<setprecision(5)<<","<<realenergy<<",";
 	cout<<fixed<<setprecision(5)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
 	end2 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds2 = end2 - start2;
     time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
 	cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds2.count() << " sec\n\n";
-	// cout<<fixed<<setprecision(8)<<elapsed_seconds2.count() << ",";
 
 	chrono::time_point<std::chrono::system_clock> start3, end3;
 	start3 = chrono::system_clock::now();
-	double recienergy_bs=bspline(PosIons, ion_charges, natoms, a, boxcell,GRID_SIZE,6,BSPLINE_ORDER)*unitzer;
+	double recienergy_bs=PM3DEwald(PosIons, ion_charges, natoms, a, boxcell,GRID_SIZE,6,BSPLINE_ORDER)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n";
 	end3 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds3 = end3 - start3;
     time_t end_time3 = std::chrono::system_clock::to_time_t(end3);
 	cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds3.count() << " sec\n\n";
-	// cout<<fixed<<setprecision(8)<<elapsed_seconds3.count();
 
 	// chrono::time_point<std::chrono::system_clock> start4, end4;
 	// start4 = chrono::system_clock::now();
