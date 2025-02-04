@@ -1,6 +1,7 @@
 #include "libinclude.h"
 #include "const.h"
 #include "fundec.h"
+#include "header.h"
 
 #define REAL 0
 #define IMAG 1
@@ -10,7 +11,7 @@
 double PM3DEwald(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, int Grid, int M, int n){
     // n: order of b-spline interpolation
    // initializing the new variables
-    double G[3][3];
+    // double G[3][3];
     double **u,**x_direc, **y_direc, **z_direc;
     u= new double * [natoms];
     x_direc= new double * [natoms];
@@ -31,24 +32,11 @@ double PM3DEwald(double **PosIons, double *ion_charges, int natoms, double betaa
 
     fftw_complex *in;   // input variable using standard fftw syntax
     fftw_complex *out;	// output variable
-    
-    // Volume Calculations
-    double A[3];
-    double C[3]={box[2][0],box[2][1],box[2][2]};
-    crossProduct(box[0],box[1],A);
-    double volume = dotProduct(A,C);
+
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *Grid*Grid*Grid);
     out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *Grid*Grid*Grid);
     fftw_plan p;
     p = fftw_plan_dft_3d(Grid,Grid,Grid, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-
-    // Calculating the reciprocal vectors
-    crossProduct(box[1],box[2],G[0]);
-    crossProduct(box[2],box[0],G[1]);
-    crossProduct(box[0],box[1],G[2]);
-    for (int x = 0; x < 3; x++)
-        for (int q = 0; q < 3; q++)
-            G[x][q] /= volume;
 
     #if defined ENABLE_OMP
         omp_set_num_threads(thread::hardware_concurrency());
@@ -126,7 +114,7 @@ double PM3DEwald(double **PosIons, double *ion_charges, int natoms, double betaa
     fftw_cleanup();
 
     double energy=0;
-    double constant=(M_PI*M_PI)/(betaa*betaa);
+    // double constant=(M_PI*M_PI)/(betaa*betaa);
     // collapse doesn't makes a difference here much; dynamic and runtime give the same time 
     int ii,jj,kk;
     #if defined ENABLE_OMP
@@ -141,15 +129,23 @@ double PM3DEwald(double **PosIons, double *ion_charges, int natoms, double betaa
                     m[t]=i*G[0][t]+j*G[1][t]+k*G[2][t];    
                 }
                 double m2=dotProduct(m,m);
-                if(i<0) ii=Grid+i;
-                else ii=i;
-                if(j<0) jj=Grid+j;
-                else  jj=j;
-                if(k<0) kk=Grid+k;
-                else  kk=k;
+                int ic,jc,kc;
+                if(i<0) {ii=Grid+i;ic=(2*M+1)+i;}
+                else {ii=i;ic=i;}
+                if(j<0) {jj=Grid+j;jc=(2*M+1)+j;}
+                else  {jj=j;jc=j;}
+                if(k<0) {kk=Grid+k;kc=(2*M+1)+k;}
+                else  {kk=k;kc=k;}
+
                 int temp=ii * (Grid * Grid) + jj * Grid + kk;
+                int tempexpfactor = ic * ((2*M+1) * (2*M+1)) + jc * (2*M+1) + kc;
+
                 double norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
-                energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,Grid)*B(j,n,Grid)*B(k,n,Grid))/m2;
+
+                // energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,Grid)*B(j,n,Grid)*B(k,n,Grid))/m2;
+                // energy += norm_FQ*ExpFactor[tempexpfactor]*norm(B(i,n,Grid)*B(j,n,Grid)*B(k,n,Grid));
+                // energy += norm_FQ*ExpFactor[tempexpfactor]*norm(CoeffX[ic]*CoeffY[jc]*CoeffZ[kc]);
+                energy += norm_FQ*ExpFactor[tempexpfactor];
             }
         }
     }
