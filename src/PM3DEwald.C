@@ -8,10 +8,9 @@
 // Disable this declaration if openmp parallelization is not required, would not be helpful for smaller systems
 #define ENABLE_OMP 11
 
-double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int Grid, int M, int n){
+double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int* Grid, int M, int* n){
     // n: order of b-spline interpolation
    // initializing the new variables
-    // double G[3][3];
     double **u,**x_direc, **y_direc, **z_direc;
     u= new double * [natoms];
     x_direc= new double * [natoms];
@@ -20,9 +19,9 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
 
     for (int  i = 0; i < natoms; i++){
         u[i] = new double  [3];
-        x_direc[i] = new double  [Grid];
-        y_direc[i] = new double  [Grid];
-        z_direc[i] = new double  [Grid];
+        x_direc[i] = new double  [Grid[0]];
+        y_direc[i] = new double  [Grid[1]];
+        z_direc[i] = new double  [Grid[2]];
     }
 
     double L1 = box[0][0];
@@ -33,10 +32,10 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
     fftw_complex *in;   // input variable using standard fftw syntax
     fftw_complex *out;	// output variable
 
-    in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *Grid*Grid*Grid);
-    out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *Grid*Grid*Grid);
+    in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *Grid[0]*Grid[1]*Grid[2]);
+    out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *Grid[0]*Grid[1]*Grid[2]);
     fftw_plan p;
-    p = fftw_plan_dft_3d(Grid,Grid,Grid, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    p = fftw_plan_dft_3d(Grid[0],Grid[1],Grid[2], in, out, FFTW_FORWARD, FFTW_ESTIMATE);
 
     #if defined ENABLE_OMP
         omp_set_num_threads(thread::hardware_concurrency());
@@ -46,7 +45,7 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
     for (int i = 0; i < natoms; i++){
         for (int j = 0; j < 3; j++){
             double x[3] = {PosIons[3*i],PosIons[3*i+1],PosIons[3*i+2]};
-            u[i][j]=Grid*dotProduct(x,G[j]);
+            u[i][j]=Grid[j]*dotProduct(x,G[j]);
         }
     }
 
@@ -56,33 +55,33 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
     // Calculating the cofficients in the x,y and z directions for the Q Matrix
     for (int i = 0; i < natoms; i++){
         // for X direction
-        for (int  k1 = 0; k1 < Grid; k1++){
+        for (int  k1 = 0; k1 < Grid[0]; k1++){
             x_direc[i][k1]=0;
             for (int  n1 = -n_max; n1 < n_max+1; n1++){
-                x_direc[i][k1]+=M_n(u[i][0]-k1-n1*Grid,n);
+                x_direc[i][k1]+=M_n(u[i][0]-k1-n1*Grid[0],n[0]);
             }
         }
         // for Y direction
-        for (int  k2 = 0; k2 < Grid; k2++){
+        for (int  k2 = 0; k2 < Grid[1]; k2++){
             y_direc[i][k2]=0;
             for (int  n2 = -n_max; n2 < n_max+1; n2++){
-                y_direc[i][k2]+=M_n(u[i][1]-k2-n2*Grid,n);
+                y_direc[i][k2]+=M_n(u[i][1]-k2-n2*Grid[1],n[1]);
             }
         }
         // for Z direction
-        for (int  k3 = 0; k3 < Grid; k3++){
+        for (int  k3 = 0; k3 < Grid[2]; k3++){
             z_direc[i][k3]=0;
             for (int  n3 = -n_max; n3 < n_max+1; n3++){
-                z_direc[i][k3]+=M_n(u[i][2]-k3-n3*Grid,n);
+                z_direc[i][k3]+=M_n(u[i][2]-k3-n3*Grid[2],n[2]);
             }
         }
     }
 
     // initializing the "in" vector with zero values
-    for (int tx = 0; tx < Grid; tx++){
-        for (int ty = 0; ty < Grid; ty++){
-            for (int tz = 0; tz < Grid; tz++){
-                in[tx * (Grid * Grid) + ty * Grid + tz][0] = 0.0;
+    for (int tx = 0; tx < Grid[0]; tx++){
+        for (int ty = 0; ty < Grid[1]; ty++){
+            for (int tz = 0; tz < Grid[2]; tz++){
+                in[tx * (Grid[2] * Grid[1]) + ty * Grid[2] + tz][0] = 0.0;
             }
         }
     }
@@ -93,18 +92,18 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
     // Final Q Matrix
     for (int j = 0; j < natoms; j++){
         if (ion_charges[j] == 0)continue;
-        for (int tx = 0; tx < Grid; tx++){
+        for (int tx = 0; tx < Grid[0]; tx++){
             if (x_direc[j][tx] == 0)continue;
 
-            for (int ty = 0; ty < Grid; ty++){
+            for (int ty = 0; ty < Grid[1]; ty++){
                 if (y_direc[j][ty] == 0)continue;
 
-                for (int tz = 0; tz < Grid; tz++){
+                for (int tz = 0; tz < Grid[2]; tz++){
                     if (z_direc[j][tz] == 0)continue;
                     #if defined ENABLE_OMP
                         #pragma omp atomic update
                     #endif
-                    in[tx * (Grid * Grid) + ty * Grid + tz][0] += ion_charges[j] * x_direc[j][tx] * y_direc[j][ty] * z_direc[j][tz];
+                    in[tx * (Grid[2] * Grid[1]) + ty * Grid[2] + tz][0] += ion_charges[j] * x_direc[j][tx] * y_direc[j][ty] * z_direc[j][tz];
                 }
             }
         }
@@ -115,7 +114,6 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
     fftw_cleanup();
 
     double energy=0;
-    // double constant=(M_PI*M_PI)/(betaa*betaa);
     // collapse doesn't makes a difference here much; dynamic and runtime give the same time 
     int ii,jj,kk;
     #if defined ENABLE_OMP
@@ -131,14 +129,14 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
                 }
                 double m2=dotProduct(m,m);
                 int ic,jc,kc;
-                if(i<0) {ii=Grid+i;ic=(2*M+1)+i;}
+                if(i<0) {ii=Grid[0]+i;ic=(2*M+1)+i;}
                 else {ii=i;ic=i;}
-                if(j<0) {jj=Grid+j;jc=(2*M+1)+j;}
+                if(j<0) {jj=Grid[1]+j;jc=(2*M+1)+j;}
                 else  {jj=j;jc=j;}
-                if(k<0) {kk=Grid+k;kc=(2*M+1)+k;}
+                if(k<0) {kk=Grid[2]+k;kc=(2*M+1)+k;}
                 else  {kk=k;kc=k;}
 
-                int temp=ii * (Grid * Grid) + jj * Grid + kk;
+                int temp=ii * (Grid[2] * Grid[1]) + jj * Grid[2] + kk;
                 int tempexpfactor = ic * ((2*M+1) * (2*M+1)) + jc * (2*M+1) + kc;
 
                 double norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];

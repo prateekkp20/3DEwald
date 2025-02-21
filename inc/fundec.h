@@ -66,7 +66,7 @@ double dotProduct(T v1,T v2);
 
 void crossProduct(double *v_A, double *v_B, double *out);
 
-double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int K, int M, int n);
+double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int* Grid, int M, int* n);
 
 double error(double a, double b);
 

@@ -130,19 +130,25 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 
-	int gx, gy, gz, nd;
+	int Grid[3], Order[3];
 
 	EWALDIn>>garbage>>garbage;
-	EWALDIn>>gx;
+	EWALDIn>>Grid[0];
 
 	EWALDIn>>garbage>>garbage;
-	EWALDIn>>gy;                                    
+	EWALDIn>>Grid[1];                                    
 
 	EWALDIn>>garbage>>garbage;
-	EWALDIn>>gz;                             
+	EWALDIn>>Grid[2];                             
 
 	EWALDIn>>garbage>>garbage;
-	EWALDIn>>nd;                             
+	EWALDIn>>Order[0];                             
+
+	EWALDIn>>garbage>>garbage;
+	EWALDIn>>Order[1];                             
+
+	EWALDIn>>garbage>>garbage;
+	EWALDIn>>Order[2];                             
 
 	EWALDIn.close();
 
@@ -307,9 +313,9 @@ int main(int argc, char **argv){
         int ic;
         if(i<0) {ic=(2*K+1)+i;}
         else {ic=i;}
-        CoeffX[ic] = B(i,BSPLINE_ORDER,GRID_SIZE);
-        CoeffY[ic] = B(i,BSPLINE_ORDER,GRID_SIZE);
-        CoeffZ[ic] = B(i,BSPLINE_ORDER,GRID_SIZE);
+        CoeffX[ic] = B(i,Order[0],Grid[0]);
+        CoeffY[ic] = B(i,Order[1],Grid[1]);
+        CoeffZ[ic] = B(i,Order[2],Grid[2]);
     }
 
 	/* B(m1,m2,m3)*Exp(-|G|)/|G| term in the reciprocal loop*/
@@ -360,7 +366,7 @@ int main(int argc, char **argv){
 
 	chrono::time_point<std::chrono::system_clock> start3, end3;
 	start3 = chrono::system_clock::now();
-	double recienergy_bs=PM3DEwald(PosIons, ion_charges, natoms, a, boxcell,GRID_SIZE,K,BSPLINE_ORDER)*unitzer;
+	double recienergy_bs=PM3DEwald(PosIons, ion_charges, natoms, a, boxcell,Grid,K,Order)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n";
 	end3 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds3 = end3 - start3;
