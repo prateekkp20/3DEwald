@@ -48,7 +48,7 @@ int main(int argc, char **argv){
 	InputIn>>garbage>>garbage;
 	getline(InputIn, garbage);
 
-	// cout<<"Project Name: "<<garbage<<endl;
+	cout<<"Project Name: "<<garbage<<endl;
 
 	InputIn>>garbage>>garbage;
 	InputIn>>posfile;
@@ -247,6 +247,16 @@ int main(int argc, char **argv){
 
 	CHARGEIn.close();
 
+	/*Checking Charge Neutrality for the system*/
+	double total_charge = 0;
+	for (int i = 0; i < n_atomtype; i++){
+		total_charge += chg[i]* natoms_type[i];
+	}
+	if(total_charge){
+		cout<<"Error: System is not charge neutral"<<endl;
+		return 0;
+	}
+
 	//creating the charge array for each atom present in the unit cell ////////////////////////////////////
 	double *ion_charges;
 	ion_charges=new double [natoms];
@@ -275,6 +285,13 @@ int main(int argc, char **argv){
 	// print_carcoor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "CONTCAR");
 	// print_coor(PosIons, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "COOR");
 	// print_lammps_input_file(PosIons, chg, natoms, boxcell,  n_atomtype, natoms_type, atomtype, 0, i,'w', "out.data");
+
+	/*Check for orthogonality of sides*/
+	/*Ewald method only works for unit cell with orthogonal sides*/
+	if(dotProduct(boxcell[1],boxcell[0]) || dotProduct(boxcell[2],boxcell[0]) || dotProduct(boxcell[1],boxcell[2])){
+		cout<<"Error: Unit Cell with Non Orthogonal Sides"<<endl;
+		return 0;
+	}
 
 	double Lmin=min(boxcell[0][0],min(boxcell[1][1],boxcell[2][2]));
 	double a=5.42/Lmin;
