@@ -10,7 +10,7 @@
 
 #if defined NAIVE
     //*Original loop, no parallelization
-    double reci_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
+    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
         double reci_energy=0;
         for (int kx = -K; kx < K+1; kx++){
             for (int ky = -K; ky < K+1; ky++){
@@ -20,7 +20,7 @@
                     complex<double> t(0,1);
                     double G[3]={2*M_PI*kx/box[0][0], 2*M_PI*ky/box[1][1], 2*M_PI*kz/box[2][2]};
                     for (int  i = 0; i < natoms; i++){
-                        double G_dot_r=G[0]*PosIons[i][0]+G[1]*PosIons[i][1]+G[2]*PosIons[i][2];
+                        double G_dot_r=G[0]*PosIons[3*i]+G[1]*PosIons[3*i+1]+G[2]*PosIons[3*i+2];
                         complex<double> charge(ion_charges[i],0.0);
                         sg+=charge*(cos(G_dot_r)+t*sin(G_dot_r));
                     }
@@ -36,7 +36,7 @@
 
 #elif defined REDUCTION_REAL_IMG
     //* For reduction construct on making the separate loops for real and imaginary part*/
-    double reci_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
+    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
         double reci_energy=0;
         for (int kx = -K; kx < K+1; kx++){
             for (int ky = -K; ky < K+1; ky++){
@@ -51,7 +51,7 @@
                     // omp_set_num_threads(10);
                     #pragma omp parallel for schedule(dynamic) reduction(+: sg_real)
                         for (int  i = 0; i < natoms; i++){
-                            double G_dot_r=G[0]*PosIons[i][0]+G[1]*PosIons[i][1]+G[2]*PosIons[i][2];
+                            double G_dot_r=G[0]*PosIons[3*i]+G[1]*PosIons[3*i+1]+G[2]*PosIons[3*i+2];
                             sg_real+=ion_charges[i]*cos(G_dot_r);
                         }
 
@@ -75,7 +75,7 @@
 #elif defined REDUCTION_KVECTOR
     //* For reduction construct on K vector*/
     /*There is no workaround for the complex reduction, we have to do the ugly work*/
-    double reci_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
+    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
         double reci_energy=0;
         // omp_set_num_threads(NUM_THREADS);
         omp_set_num_threads(thread::hardware_concurrency());
@@ -90,7 +90,7 @@
                     double G[3]={2*M_PI*kx/box[0][0], 2*M_PI*ky/box[1][1], 2*M_PI*kz/box[2][2]};
                         #pragma omp SIMD
                         for (int  i = 0; i < natoms; i++){
-                            double G_dot_r=G[0]*PosIons[i][0]+G[1]*PosIons[i][1]+G[2]*PosIons[i][2];
+                            double G_dot_r=G[0]*PosIons[3*i]+G[1]*PosIons[3*i+1]+G[2]*PosIons[3*i+2];
                             complex<double> charge(ion_charges[i],0.0);
                             sg+=charge*(cos(G_dot_r)+t*sin(G_dot_r));
                         }
@@ -106,7 +106,7 @@
 
 #elif defined SYNCHRONIZATION_CONSTRUCT
     //* synchronization construct critical
-    double reci_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
+    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
         int nthreads;
         double reci_energy=0;
         omp_set_num_threads(thread::hardware_concurrency());
@@ -128,7 +128,7 @@
                         if(id==0) nthreads=nthrds;
 
                         for (i = id,sum=0; i < natoms; i+=nthrds){
-                            double G_dot_r=G[0]*PosIons[i][0]+G[1]*PosIons[i][1]+G[2]*PosIons[i][2];
+                            double G_dot_r=G[0]*PosIons[3*i]+G[1]*PosIons[3*i+1]+G[2]*PosIons[3*i+2];
                             complex<double> charge(ion_charges[i],0.0);
                             sum+=charge*(cos(G_dot_r)+t*sin(G_dot_r));
                         }

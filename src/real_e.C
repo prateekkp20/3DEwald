@@ -12,7 +12,7 @@
 
 #if defined FALSE_SHARING_AND_PADDING
 //* false sharing and padding
-    double real_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
+    double real_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         int nthreads;
         double sum[NUM_THREADS][PAD],real_energy=0;
     //     omp_set_num_threads(NUM_THREADS);
@@ -40,7 +40,7 @@
 
 #elif defined SYNCHRONIZATION_CONSTRUCT
 //* synchromization construct critical
-    double real_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
+    double real_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         int nthreads;
         double real_energy=0;
     // omp_set_num_threads(NUM_THREADS);
@@ -69,7 +69,7 @@
 
 #elif defined NAIVE
 //*Original loop, no parallelization
-    double real_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
+    double real_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         double real_energy=0;
         for (int i = 0; i < natoms; i++){
             for (int j = 0; j < i; j++){
@@ -84,7 +84,7 @@
 
 #elif defined REDUCTION
 //* For reduction construct
-    double real_energy(double **PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
+    double real_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         double real_energy=0;
         // omp_set_num_threads(NUM_THREADS);
         omp_set_num_threads(thread::hardware_concurrency());

@@ -9,7 +9,7 @@
 
 // print coordinates in readable format
 
-void print_lammps_input_file(double **PosIons, float *chg, int natoms, float **boxcell, int n_atomtype, int *natoms_type, string *atomtype, int printtrj, int MDstep, char printmode, string filename){
+void print_lammps_input_file(double *PosIons, float *chg, int natoms, float **boxcell, int n_atomtype, int *natoms_type, string *atomtype, int printtrj, int MDstep, char printmode, string filename){
 	FILE *pFile;
 
 	pFile = fopen(filename.c_str(), &printmode);
@@ -33,7 +33,7 @@ void print_lammps_input_file(double **PosIons, float *chg, int natoms, float **b
 	int count=1;
 	for (int i = 0; i < n_atomtype; i++){
 		for (int j = 0; j < natoms_type[i]; j++){
-			fprintf(pFile, "%d %d %.0f %11.16f %11.16f %11.16f \n",count, i+1, chg[i], PosIons[count-1][0], PosIons[count-1][1], PosIons[count-1][2]);
+			fprintf(pFile, "%d %d %.0f %11.16f %11.16f %11.16f \n",count, i+1, chg[i], PosIons[3*(count-1)], PosIons[(count-1)*3+1], PosIons[(count-1)*3+2]);
 			count++;	
 		}
 	}
@@ -46,7 +46,7 @@ void print_lammps_input_file(double **PosIons, float *chg, int natoms, float **b
 	fclose(pFile);
 }
 
-void print_coor(double **PosIons, int natoms, float **boxcell, int n_atomtype, int *natoms_type, string *atomtype, int printtrj, int MDstep, char printmode, string filename){
+void print_coor(double *PosIons, int natoms, float **boxcell, int n_atomtype, int *natoms_type, string *atomtype, int printtrj, int MDstep, char printmode, string filename){
 
 	FILE *pFile;
 
@@ -79,9 +79,9 @@ void print_coor(double **PosIons, int natoms, float **boxcell, int n_atomtype, i
 	double dir_coor[natoms][3];
 
 	for (int i = 0; i < natoms; i++){
-		dir_coor[i][0] = PosIons[i][0] / boxcell[0][0] - PosIons[i][1] * boxcell[0][1] / boxcell[0][0] / boxcell[1][1] + PosIons[i][2] * (boxcell[0][1] * boxcell[1][2] - boxcell[0][2] * boxcell[2][2]) / boxcell[0][0] / boxcell[1][1] / boxcell[2][2];
-		dir_coor[i][1] = PosIons[i][1] / boxcell[1][1] - PosIons[i][2] * boxcell[1][2] / boxcell[1][1] / boxcell[2][2];
-		dir_coor[i][2] = PosIons[i][2] / boxcell[2][2];
+		dir_coor[i][0] = PosIons[3*i] / boxcell[0][0] - PosIons[3*i+1] * boxcell[0][1] / boxcell[0][0] / boxcell[1][1] + PosIons[3*i+2] * (boxcell[0][1] * boxcell[1][2] - boxcell[0][2] * boxcell[2][2]) / boxcell[0][0] / boxcell[1][1] / boxcell[2][2];
+		dir_coor[i][1] = PosIons[3*i+1] / boxcell[1][1] - PosIons[3*i+2] * boxcell[1][2] / boxcell[1][1] / boxcell[2][2];
+		dir_coor[i][2] = PosIons[3*i+2] / boxcell[2][2];
 
 		fprintf(pFile, "%11.6f %11.6f %11.6f \n", dir_coor[i][0], dir_coor[i][1], dir_coor[i][2]);
 	}
@@ -98,7 +98,7 @@ void print_coor(double **PosIons, int natoms, float **boxcell, int n_atomtype, i
 	fclose(pFile);
 }
 
-void print_carcoor(double **PosIons, int natoms, float **boxcell, int n_atomtype, int *natoms_type, string *atomtype, int printtrj, int MDstep, char printmode, string filename){
+void print_carcoor(double *PosIons, int natoms, float **boxcell, int n_atomtype, int *natoms_type, string *atomtype, int printtrj, int MDstep, char printmode, string filename){
 
 	cout << "****Printing CONTCAR****" << endl;
 
@@ -128,7 +128,7 @@ void print_carcoor(double **PosIons, int natoms, float **boxcell, int n_atomtype
 	fprintf(pFile, "Cartesian  configuration=        %d\n", MDstep);
 
 	for (int i = 0; i < natoms; i++){
-		fprintf(pFile, "%11.6f %11.6f %11.6f \n", PosIons[i][0], PosIons[i][1], PosIons[i][2]);
+		fprintf(pFile, "%11.6f %11.6f %11.6f \n", PosIons[3*i], PosIons[3*i+1], PosIons[3*i+2]);
 	}
 
 	fclose(pFile);
@@ -136,37 +136,37 @@ void print_carcoor(double **PosIons, int natoms, float **boxcell, int n_atomtype
 
 // Print coordinates in outputfile
 
-void printCoor(double **PosIons, int natoms, string *type){
+void printCoor(double *PosIons, int natoms, string *type){
 	// cout<<"*****Coordinates of atoms in Angstrom****"<<endl<<endl;  //changes by krishna
 
 	for (int i = 0; i < natoms; i++){
-		printf("%d  %s  %11.6f %11.6f %11.6f \n", i + 1, type[i].c_str(), PosIons[i][0], PosIons[i][1], PosIons[i][2]);
+		printf("%d  %s  %11.6f %11.6f %11.6f \n", i + 1, type[i].c_str(), PosIons[3*i], PosIons[3*i+1], PosIons[3*i+2]);
 	}
 
 	cout << endl;
 }
 
-void printVel(double **Vel, int natoms, string *type){
+void printVel(double *Vel, int natoms, string *type){
 	// cout<<"*****Velocities of atoms in Angs/fs******"<<endl<<endl;  //changes by krishna
 
 	for (int i = 0; i < natoms; i++){
-		printf("%d  %s  %11.6f %11.6f %11.6f \n", i + 1, type[i].c_str(), Vel[i][0], Vel[i][1], Vel[i][2]);
+		printf("%d  %s  %11.6f %11.6f %11.6f \n", i + 1, type[i].c_str(), Vel[3*i], Vel[3*i+1], Vel[3*i+2]);
 	}
 
 	cout << endl;
 }
 
-void printFor(double **ForceIons, int natoms, string *type){
+void printFor(double *ForceIons, int natoms, string *type){
 	// cout<<"*****Forces on atoms in eV/Angs****"<<endl<<endl;    //changes by krishna
 
 	for (int i = 0; i < natoms; i++){
-		printf("%d  %s  %11.6f %11.6f %11.6f \n", i + 1, type[i].c_str(), ForceIons[i][0] / KJEV, ForceIons[i][1] / KJEV, ForceIons[i][2] / KJEV);
+		printf("%d  %s  %11.6f %11.6f %11.6f \n", i + 1, type[i].c_str(), ForceIons[3*i] / KJEV, ForceIons[3*i+1] / KJEV, ForceIons[3*i+2] / KJEV);
 	}
 
 	cout << endl;
 }
 
-void printVel(double **vel, int natoms){
+void printVel(double *vel, int natoms){
 	ofstream VelOut;
 	// cout<<"****Printing velocities*****"<<endl;			//changes by krishna
 
@@ -174,7 +174,7 @@ void printVel(double **vel, int natoms){
 
 	for (int i = 0; i < natoms; i++){
 		for (int j = 0; j < 3; j++){
-			VelOut << vel[i][j] << "  \t";
+			VelOut << vel[3*i+j] << "  \t";
 		}
 		VelOut << endl;
 	}
@@ -182,7 +182,7 @@ void printVel(double **vel, int natoms){
 	VelOut.close();
 }
 
-void printprobVel(double **vel, int natoms, float *mass, float Temp){
+void printprobVel(double *vel, int natoms, float *mass, float Temp){
 	ofstream VelOut;
 
 	VelOut.open("veldist.out");
@@ -203,7 +203,7 @@ void printprobVel(double **vel, int natoms, float *mass, float Temp){
 	for (int i = 0; i < natoms; i++){
 		for (int j = 0; j < 3; j++){
 
-			tmp = ceil((vel[i][j] - RMin) / ldist);
+			tmp = ceil((vel[3*i+j] - RMin) / ldist);
 
 			if (tmp < 0){
 				Dist[0] = Dist[0] + 1;

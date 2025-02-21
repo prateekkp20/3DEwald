@@ -212,26 +212,19 @@ int main(int argc, char **argv){
 	getline(PosIn, garbage);
 	getline(PosIn, garbage);
 
-	double **PosIons, **ForceIons, **vel;
-	int **fixatoms;
-	float *mass;
+	double *PosIons, *ForceIons, *vel;
+	int *fixatoms;
+	double *mass;
 
-	mass=new float [natoms];
-	PosIons=new double * [natoms];
-	ForceIons=new double *[natoms];
-	vel=new double *[natoms];
-	fixatoms=new int *[natoms];
-
-	for(i=0;i<natoms;i++){
-		PosIons[i]=new double [3];
-		ForceIons[i]=new double [3];
-		vel[i]=new double [3];		
-		fixatoms[i]=new int [3];
-	}
+	mass=new double [natoms];
+	PosIons=new double [natoms*3];
+	ForceIons=new double [natoms*3];
+	vel=new double [natoms*3];
+	fixatoms=new int [natoms*3];
 
 	//getting positions of each atom
 	for(i=0;i<natoms;i++){
-		PosIn>>PosIons[i][0]>>PosIons[i][1]>>PosIons[i][2];
+		PosIn>>PosIons[3*i]>>PosIons[3*i+1]>>PosIons[3*i+2];
 	}
 
 	PosIn.close();
@@ -367,15 +360,6 @@ int main(int argc, char **argv){
     // time_t end_time4 = std::chrono::system_clock::to_time_t(end4);
 	// // cout<< "Elapsed time: " << elapsed_seconds4.count() << " sec\n\n";
 
-	// long double total = correctionTerm+recienergy+realenergy+selfenergy;
-	// cout<<fixed<<setprecision(5)<<total<<",";
-	// cout<<fixed<<setprecision(5)<<error(total,337.047483504287356)<<",";
-	// cout<<fixed<<setprecision(5)<<error(total,336.75412)<<",";
-	// cout<<fixed<<setprecision(5)<<+selfenergy+recienergy_bs+correctionTerm<<",";
-	// cout<<fixed<<setprecision(15)<<"Total: "<<correctionTerm+recienergy_bs+realenergy+selfenergy<<"\n";
-	// cout<<fixed<<setprecision(15)<<"Total: "<<recienergy_bs+realenergy+selfenergy<<"\n";
-	// cout<<"Error: "<<error(total,-3535.890843081610456)<<"\n";
-	// cout<<fixed<<setprecision(10)<<","<< error(recienergy,recienergy_bs);
 	// cout<<fixed<<setprecision(10)<<"Relative Error with FFTW: "<< error(recienergy,recienergy_bs)<<"\n";
 
 /* using std::chrono::duration_cast; */
@@ -400,14 +384,6 @@ int main(int argc, char **argv){
 	for(i=0;i<3;i++){
 		delete [] boxcell[i]; 
 	}
-
-	for(i=0;i<natoms;i++){
-		delete [] PosIons[i];
-		delete [] ForceIons[i];
-		delete [] vel[i];
-		delete [] fixatoms[i];
-	}
-
 
 	delete [] PosIons;
 	delete [] boxcell;
