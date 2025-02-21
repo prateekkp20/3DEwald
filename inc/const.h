@@ -8,5 +8,3 @@
 #define Ke    8.9875517923e+9                      //  Coulomb constant N-m2C(-sq)
 #define rtoa  1e-10                                //  Angstrom conversion
 #define NUM_THREADS 12                             //  Number of threads for openmp parallelization 
-#define GRID_SIZE 64                               //  For B-Spline
-#define BSPLINE_ORDER 6                            //  Order for B-Spline                 
