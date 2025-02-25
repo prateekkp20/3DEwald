@@ -1,5 +1,5 @@
-Project = Calculating Energy
-Posfile = big/POSCAR.10
+Project = Calculating Energies for 3D Ewald
+Posfile = POSCAR.kcl200
 generate_pairlist = 1
 Temp = 300
 hyb  = 1
