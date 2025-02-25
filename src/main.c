@@ -313,36 +313,46 @@ int main(int argc, char **argv){
 	double Lmin=min(boxcell[0][0],min(boxcell[1][1],boxcell[2][2]));
 	double a=5.42/Lmin;
 	double cutoff = Lmin/2;
-	int K = 6; //convergence limits for the reci sum
 
 	/*Useful configuration independent Computations for the reciprocal space summation*/
 	/*Cofficients Bi[mi] of the bspline interpolation*/ //Refer to Essmann et al.
-	CoeffX = new complex<double> [2*K+1];
-    CoeffY = new complex<double> [2*K+1];
-    CoeffZ = new complex<double> [2*K+1];
-	for (int i = -K; i < K+1; i++){
+	CoeffX = new complex<double> [2*Kvec[0]+1];
+    CoeffY = new complex<double> [2*Kvec[1]+1];
+    CoeffZ = new complex<double> [2*Kvec[2]+1];
+	for (int i = -Kvec[0]; i < Kvec[0]+1; i++){
         int ic;
-        if(i<0) {ic=(2*K+1)+i;}
+        if(i<0) {ic=(2*Kvec[0]+1)+i;}
         else {ic=i;}
         CoeffX[ic] = B(i,Order[0],Grid[0]);
+    }
+	for (int i = -Kvec[1]; i < Kvec[1]+1; i++){
+        int ic;
+        if(i<0) {ic=(2*Kvec[1]+1)+i;}
+        else {ic=i;}
         CoeffY[ic] = B(i,Order[1],Grid[1]);
+    }
+	for (int i = -Kvec[2]; i < Kvec[2]+1; i++){
+        int ic;
+        if(i<0) {ic=(2*Kvec[2]+1)+i;}
+        else {ic=i;}
         CoeffZ[ic] = B(i,Order[2],Grid[2]);
     }
 
 	/* B(m1,m2,m3)*Exp(-|G|)/|G| term in the reciprocal loop*/
 	double constant=(M_PI*M_PI)/(a*a);
-	ExpFactor = new double [(2*K+1)*(2*K+1)*(2*K+1)];
-	for (int i = -K; i < K+1; i++){
-        for (int j = -K; j< K+1; j++){
-            for (int k = -K; k < K+1; k++){
+	ExpFactor = new double [(2*Kvec[0]+1)*(2*Kvec[1]+1)*(2*Kvec[2]+1)];
+
+	for (int i = -Kvec[0]; i < Kvec[0]+1; i++){
+        for (int j = -Kvec[1]; j< Kvec[1]+1; j++){
+            for (int k = -Kvec[2]; k < Kvec[2]+1; k++){
 				int ii,jj,kk;
-				if(i<0) ii=(2*K+1)+i;
+				if(i<0) ii=(2*Kvec[0]+1)+i;
                 else ii=i;
-                if(j<0) jj=(2*K+1)+j;
+                if(j<0) jj=(2*Kvec[1]+1)+j;
                 else  jj=j;
-                if(k<0) kk=(2*K+1)+k;
+                if(k<0) kk=(2*Kvec[2]+1)+k;
                 else  kk=k;
-				int temp=ii * ((2*K+1) * (2*K+1)) + jj * (2*K+1) + kk;
+				int temp=ii * ((2*Kvec[2]+1) * (2*Kvec[1]+1)) + jj * (2*Kvec[2]+1) + kk;
 				double m[3];
                 for (int t = 0; t < 3; t++){
                     m[t]=i*G[0][t]+j*G[1][t]+k*G[2][t];    
@@ -359,7 +369,7 @@ int main(int argc, char **argv){
 
 	chrono::time_point<std::chrono::system_clock> start1, end1;
 	start1 = chrono::system_clock::now();
-	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell,K)*unitzer;
+	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell, Kvec)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
 	end1 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds1 = end1- start1;
@@ -377,7 +387,7 @@ int main(int argc, char **argv){
 
 	chrono::time_point<std::chrono::system_clock> start3, end3;
 	start3 = chrono::system_clock::now();
-	double recienergy_bs=PM3DEwald(PosIons, ion_charges, natoms, a, boxcell,Grid,K,Order)*unitzer;
+	double recienergy_bs=PM3DEwald(PosIons, ion_charges, natoms, a, boxcell, Grid, Kvec, Order)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n";
 	end3 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds3 = end3 - start3;
@@ -408,11 +418,6 @@ int main(int argc, char **argv){
 /*   HRTimer end = HR::now(); */
 /*   auto duration = duration_cast<microseconds>(end - start).count(); */
 /* 	cout<< "Elapsed time: " << duration << " usec"; */
-
-	// for benchmarking using the lammps data
-	// cout<<fixed<<setprecision(5)<<" "<<realenergy<<" ";
-	// cout<<fixed<<setprecision(5)<<selfenergy+recienergy<<"\n";
-	// cout<<fixed<<setprecision(5)<<selfenergy+recienergy+realenergy<<" ";
 
 	// delete dynamic variables 
 	for(i=0;i<3;i++){

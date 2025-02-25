@@ -10,11 +10,11 @@
 
 #if defined NAIVE
     //*Original loop, no parallelization
-    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
+    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int *K){
         double reci_energy=0;
-        for (int kx = -K; kx < K+1; kx++){
-            for (int ky = -K; ky < K+1; ky++){
-                for (int kz = -K; kz < K+1; kz++){
+        for (int kx = -K[0]; kx < K[0]+1; kx++){
+            for (int ky = -K[1]; ky < K[1]+1; ky++){
+                for (int kz = -K[2]; kz < K[2]+1; kz++){
                     if((kx==0) && (ky==0) && (kz==0))continue;
                     complex<double> sg=0;
                     complex<double> t(0,1);
@@ -36,11 +36,11 @@
 
 #elif defined REDUCTION_REAL_IMG
     //* For reduction construct on making the separate loops for real and imaginary part*/
-    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
+    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int *K){
         double reci_energy=0;
-        for (int kx = -K; kx < K+1; kx++){
-            for (int ky = -K; ky < K+1; ky++){
-                for (int kz = -K; kz < K+1; kz++){
+        for (int kx = -K[0]; kx < K[0]+1; kx++){
+            for (int ky = -K[1]; ky < K[1]+1; ky++){
+                for (int kz = -K[2]; kz < K[2]+1; kz++){
                     if((kx==0) && (ky==0) && (kz==0))continue;
                     complex<double> sg=0;
                     complex<double> t(0,1);
@@ -75,15 +75,15 @@
 #elif defined REDUCTION_KVECTOR
     //* For reduction construct on K vector*/
     /*There is no workaround for the complex reduction, we have to do the ugly work*/
-    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
+    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int *K){
         double reci_energy=0;
         // omp_set_num_threads(NUM_THREADS);
         omp_set_num_threads(thread::hardware_concurrency());
         #pragma omp parallel for schedule(runtime) reduction(+: reci_energy) collapse(3)
         // #pragma omp parallel for schedule(runtime) reduction(+: reci_energy)
-        for (int kx = -K; kx < K+1; kx++){
-            for (int ky = -K; ky < K+1; ky++){
-                for (int kz = -K; kz < K+1; kz++){
+        for (int kx = -K[0]; kx < K[0]+1; kx++){
+            for (int ky = -K[1]; ky < K[1]+1; ky++){
+                for (int kz = -K[2]; kz < K[2]+1; kz++){
                     if((kx==0) && (ky==0) && (kz==0))continue;
                     complex<double> sg=0;
                     complex<double> t(0,1);
@@ -106,13 +106,13 @@
 
 #elif defined SYNCHRONIZATION_CONSTRUCT
     //* synchronization construct critical
-    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int K){
+    double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int *K){
         int nthreads;
         double reci_energy=0;
         omp_set_num_threads(thread::hardware_concurrency());
-        for (int kx = -K; kx < K+1; kx++){
-            for (int ky = -K; ky < K+1; ky++){
-                for (int kz = -K; kz < K+1; kz++){
+        for (int kx = -K[0]; kx < K[0]+1; kx++){
+            for (int ky = -K[1]; ky < K[1]+1; ky++){
+                for (int kz = -K[2]; kz < K[2]+1; kz++){
                     if((kx==0) && (ky==0) && (kz==0))continue;
                     complex<double> sg=0;
                     complex<double> t(0,1);

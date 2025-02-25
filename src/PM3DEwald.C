@@ -8,7 +8,7 @@
 // Disable this declaration if openmp parallelization is not required, would not be helpful for smaller systems
 #define ENABLE_OMP 11
 
-double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int* Grid, int M, int* n){
+double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int* Grid, int *M, int* n){
     // n: order of b-spline interpolation
    // initializing the new variables
     double **u,**x_direc, **y_direc, **z_direc;
@@ -119,9 +119,9 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
     #if defined ENABLE_OMP
         #pragma omp parallel for schedule(runtime) reduction(+: energy) collapse(3)
     #endif
-    for (int i = -M; i < M+1; i++){
-        for (int j = -M; j< M+1; j++){
-            for (int k = -M; k < M+1; k++){
+    for (int i = -M[0]; i < M[0]+1; i++){
+        for (int j = -M[1]; j< M[1]+1; j++){
+            for (int k = -M[2]; k < M[2]+1; k++){
                 if(i==0&&j==0&&k==0)continue;
                 double m[3];
                 for (int t = 0; t < 3; t++){
@@ -129,15 +129,15 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
                 }
                 double m2=dotProduct(m,m);
                 int ic,jc,kc;
-                if(i<0) {ii=Grid[0]+i;ic=(2*M+1)+i;}
+                if(i<0) {ii=Grid[0]+i;ic=(2*M[0]+1)+i;}
                 else {ii=i;ic=i;}
-                if(j<0) {jj=Grid[1]+j;jc=(2*M+1)+j;}
+                if(j<0) {jj=Grid[1]+j;jc=(2*M[1]+1)+j;}
                 else  {jj=j;jc=j;}
-                if(k<0) {kk=Grid[2]+k;kc=(2*M+1)+k;}
+                if(k<0) {kk=Grid[2]+k;kc=(2*M[2]+1)+k;}
                 else  {kk=k;kc=k;}
 
                 int temp=ii * (Grid[2] * Grid[1]) + jj * Grid[2] + kk;
-                int tempexpfactor = ic * ((2*M+1) * (2*M+1)) + jc * (2*M+1) + kc;
+                int tempexpfactor = ic * ((2*M[2]+1) * (2*M[1]+1)) + jc * (2*M[2]+1) + kc;
 
                 double norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
 
