@@ -208,6 +208,8 @@ int main(int argc, char **argv){
 			PosIn>>boxcell[i][j];
 		}
 	}
+	getline(PosIn, garbage);//read the atoms again
+	getline(PosIn, garbage1);
 
 	//get number of atoms for each type
 	for(i=0;i<n_atomtype;i++){
