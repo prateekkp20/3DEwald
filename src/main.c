@@ -130,7 +130,16 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 
-	int Grid[3], Order[3];
+	int Kvec[3], Grid[3], Order[3];
+
+	EWALDIn>>garbage>>garbage;
+	EWALDIn>>Kvec[0];
+
+	EWALDIn>>garbage>>garbage;
+	EWALDIn>>Kvec[1];                                    
+
+	EWALDIn>>garbage>>garbage;
+	EWALDIn>>Kvec[2];                             
 
 	EWALDIn>>garbage>>garbage;
 	EWALDIn>>Grid[0];
