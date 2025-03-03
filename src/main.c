@@ -132,32 +132,20 @@ int main(int argc, char **argv){
 
 	int Kvec[3], Grid[3], Order[3];
 
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>Kvec[0];
+	for (int i = 0; i < 3; i++){
+		EWALDIn>>garbage>>garbage;
+		EWALDIn>>Kvec[i];
+	}
 
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>Kvec[1];                                    
+	for (int i = 0; i < 3; i++){
+		EWALDIn>>garbage>>garbage;
+		EWALDIn>>Grid[i];
+	}
 
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>Kvec[2];                             
-
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>Grid[0];
-
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>Grid[1];                                    
-
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>Grid[2];                             
-
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>Order[0];                             
-
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>Order[1];                             
-
-	EWALDIn>>garbage>>garbage;
-	EWALDIn>>Order[2];                             
+	for (int i = 0; i < 3; i++){
+		EWALDIn>>garbage>>garbage;
+		EWALDIn>>Order[i];
+	}                             
 
 	EWALDIn.close();
 
