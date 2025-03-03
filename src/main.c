@@ -7,7 +7,7 @@
 #include "complex"
 #include "header.h"
 
-double *ExpFactor;
+double *ExpFactor, *PreExpFactor;
 double G[3][3];
 double volume;
 complex<double> *CoeffX,*CoeffY,*CoeffZ;
@@ -352,12 +352,35 @@ int main(int argc, char **argv){
 		}
 	}
 
+	int Kvec2[3] = {6,6,6};
+	PreExpFactor = new double [(2*Kvec2[0]+1)*(2*Kvec2[1]+1)*(2*Kvec2[2]+1)];
+	for (int i = -Kvec2[0]; i < Kvec2[0]+1; i++){
+		for (int j = -Kvec2[1]; j< Kvec2[1]+1; j++){
+			for (int k = -Kvec2[2]; k < Kvec2[2]+1; k++){
+				int ii,jj,kk;
+				if(i<0) ii=(2*Kvec2[0]+1)+i;
+				else ii=i;
+				if(j<0) jj=(2*Kvec2[1]+1)+j;
+				else  jj=j;
+				if(k<0) kk=(2*Kvec2[2]+1)+k;
+				else  kk=k;
+				int temp=ii * ((2*Kvec2[2]+1) * (2*Kvec2[1]+1)) + jj * (2*Kvec2[2]+1) + kk;
+				double m[3];
+				for (int t = 0; t < 3; t++){
+					m[t]=i*G[0][t]+j*G[1][t]+k*G[2][t];    
+				}
+				double m2=dotProduct(m,m);
+				PreExpFactor[temp] = exp(-m2*constant)/m2;
+			}
+		}
+	}
+	
 	double selfenergy=selfe(n_atomtype, natoms_type, chg, a)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Self Energy: "<<selfenergy<<" Kcal/mol"<<"\n\n";
 
 	chrono::time_point<std::chrono::system_clock> start1, end1;
 	start1 = chrono::system_clock::now();
-	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell, Kvec)*unitzer;
+	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell, Kvec2)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
 	end1 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds1 = end1- start1;
