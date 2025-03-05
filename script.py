@@ -1,8 +1,13 @@
+# python3 script.py
 import os
+import sys
 from pathlib2 import Path 
 import numpy as np
 import pandas as pd
 from random import randint
+import csv
+import subprocess
+from subprocess import PIPE
 
 def replace_line_in_file(file_path, start_words, new_line):
     """
@@ -25,3 +30,26 @@ def replace_line_in_file(file_path, start_words, new_line):
 
     with open(file_path, 'w') as file:
         file.writelines(modified_lines)                 # Write modified content back to the file
+
+Input_File  = "input.in"
+CSV_File = "POSCAR_Files/Ewald3D/NaCl/out.csv"
+POSCAR_File = "POSCAR_Files/Ewald3D/NaCl/POSCAR."
+Total = 8
+
+os.system(f"clear && make clean && make")
+os.chdir("run/")
+
+# # Write the header to the CSV file in text mode
+# with open(CSV_File, 'w', newline='') as csvfile:
+#     csvwriter = csv.writer(csvfile)
+#     csvwriter.writerow(['Ecoul', 'Time (sec)', 'Elong', 'Time(sec)', 'Elong(pppm)', 'Time(sec)', 'Total'])
+
+# Just run the Ewald3D files, with simple FFTW
+with open(CSV_File, 'wb') as file:
+
+    for i in range(1,Total):
+        replace_line_in_file(Input_File,"Posfile = ","Posfile = "+POSCAR_File+str(i).zfill(3))
+        for j in range(0,5):
+            result = subprocess.run(["./coulomb.x"], stdout=PIPE, stderr=PIPE)
+            file.write(result.stdout)  # Write stdout in binary format
+            file.write(result.stderr)  # Write stderr in binary format
