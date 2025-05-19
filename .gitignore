@@ -2,3 +2,4 @@ obj
 **/*.o
 .vscode
 run/*.x
+run/POSCAR_Files/*
