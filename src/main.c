@@ -298,6 +298,12 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
+	/*Order of bspline interpolation should be an even number*/
+	if(Order[0]%2 || Order[1]%2 || Order[2]%2){
+		cout<<"Error: Order of bspline interpolation should be an even number"<<endl;
+		return 0;
+	}
+
 	double Lmin=min(boxcell[0][0],min(boxcell[1][1],boxcell[2][2]));
 	double a=5.42/Lmin;
 	double cutoff = Lmin/2;
@@ -326,10 +332,10 @@ int main(int argc, char **argv){
         CoeffZ[ic] = B(i,Order[2],Grid[2]);
     }
 
-	/* B(m1,m2,m3)*Exp(-|G|)/|G| term in the reciprocal loop*/
+	/* B(m1,m2,m3)*Exp(-|G|)/|G| term in the reciprocal loop for SPME*/
 	double constant=(M_PI*M_PI)/(a*a);
 	ExpFactor = new double [(2*Kvec[0]+1)*(2*Kvec[1]+1)*(2*Kvec[2]+1)];
-
+	#pragma omp parallel for schedule(runtime) collapse(3)
 	for (int i = -Kvec[0]; i < Kvec[0]+1; i++){
         for (int j = -Kvec[1]; j< Kvec[1]+1; j++){
             for (int k = -Kvec[2]; k < Kvec[2]+1; k++){
@@ -346,25 +352,27 @@ int main(int argc, char **argv){
                     m[t]=i*G[0][t]+j*G[1][t]+k*G[2][t];    
                 }
                 double m2=dotProduct(m,m);
-				// ExpFactor[temp] = exp(-m2*constant)/m2;
 				ExpFactor[temp] = norm(CoeffX[ii]*CoeffY[jj]*CoeffZ[kk])*exp(-m2*constant)/m2;
 			}
 		}
 	}
 
+	/*This would be the constant term to be multplied with each reciprocal sum value*/
+	/* Exp(-|G|)/|G| or the screening function term in the reciprocal loop for direct ewald*/
 	int Kvec2[3] = {6,6,6};
-	PreExpFactor = new double [(2*Kvec2[0]+1)*(2*Kvec2[1]+1)*(2*Kvec2[2]+1)];
-	for (int i = -Kvec2[0]; i < Kvec2[0]+1; i++){
-		for (int j = -Kvec2[1]; j< Kvec2[1]+1; j++){
-			for (int k = -Kvec2[2]; k < Kvec2[2]+1; k++){
+	PreExpFactor = new double [(2*Kvec[0]+1)*(2*Kvec[1]+1)*(2*Kvec[2]+1)];
+	#pragma omp parallel for schedule(runtime) collapse(3)
+	for (int i = -Kvec[0]; i < Kvec[0]+1; i++){
+		for (int j = -Kvec[1]; j< Kvec[1]+1; j++){
+			for (int k = -Kvec[2]; k < Kvec[2]+1; k++){
 				int ii,jj,kk;
-				if(i<0) ii=(2*Kvec2[0]+1)+i;
+				if(i<0) ii=(2*Kvec[0]+1)+i;
 				else ii=i;
-				if(j<0) jj=(2*Kvec2[1]+1)+j;
+				if(j<0) jj=(2*Kvec[1]+1)+j;
 				else  jj=j;
-				if(k<0) kk=(2*Kvec2[2]+1)+k;
+				if(k<0) kk=(2*Kvec[2]+1)+k;
 				else  kk=k;
-				int temp=ii * ((2*Kvec2[2]+1) * (2*Kvec2[1]+1)) + jj * (2*Kvec2[2]+1) + kk;
+				int temp=ii * ((2*Kvec[2]+1) * (2*Kvec[1]+1)) + jj * (2*Kvec[2]+1) + kk;
 				double m[3];
 				for (int t = 0; t < 3; t++){
 					m[t]=i*G[0][t]+j*G[1][t]+k*G[2][t];    
@@ -380,7 +388,7 @@ int main(int argc, char **argv){
 
 	chrono::time_point<std::chrono::system_clock> start1, end1;
 	start1 = chrono::system_clock::now();
-	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell, Kvec2)*unitzer;
+	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell, Kvec)*unitzer;
 	cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
 	end1 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds1 = end1- start1;
@@ -405,30 +413,18 @@ int main(int argc, char **argv){
     time_t end_time3 = std::chrono::system_clock::to_time_t(end3);
 	cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds3.count() << " sec\n\n";
 
-	// chrono::time_point<std::chrono::system_clock> start4, end4;
-	// start4 = chrono::system_clock::now();
-	// double correctionTerm=dipoleCorrection(PosIons, ion_charges, natoms, boxcell)*unitzer;
-	// // cout<<fixed<<setprecision(5)<<correctionTerm<<",";
-	// cout<<fixed<<setprecision(5)<<"J(M,S): "<<correctionTerm<<" Kcal/mol"<<"\n";
-	// end4 = chrono::system_clock::now();
-	// chrono::duration<double> elapsed_seconds4 = end4 - start4;
-    // time_t end_time4 = std::chrono::system_clock::to_time_t(end4);
-	// // cout<< "Elapsed time: " << elapsed_seconds4.count() << " sec\n\n";
+	/* using std::chrono::duration_cast; */
+	/* using HR = std::chrono::high_resolution_clock; */
+	/* using HRTimer = HR::time_point; */
+	/* using std::chrono::microseconds; */
+	/* using std::chrono::seconds; */
 
-	// cout<<fixed<<setprecision(10)<<"Relative Error with FFTW: "<< error(recienergy,recienergy_bs)<<"\n";
-
-/* using std::chrono::duration_cast; */
-/* using HR = std::chrono::high_resolution_clock; */
-/* using HRTimer = HR::time_point; */
-/* using std::chrono::microseconds; */
-/* using std::chrono::seconds; */
-
-/*   HRTimer start = HR::now(); */
-/*  recienergy_bs=bspline(PosIons, ion_charges, natoms, a, boxcell,60,6,5)*unitzer; */
-/* 	cout<<fixed<<setprecision(5)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n"; */
-/*   HRTimer end = HR::now(); */
-/*   auto duration = duration_cast<microseconds>(end - start).count(); */
-/* 	cout<< "Elapsed time: " << duration << " usec"; */
+	/*   HRTimer start = HR::now(); */
+	/*  recienergy_bs=bspline(PosIons, ion_charges, natoms, a, boxcell,60,6,5)*unitzer; */
+	/* 	cout<<fixed<<setprecision(5)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n"; */
+	/*   HRTimer end = HR::now(); */
+	/*   auto duration = duration_cast<microseconds>(end - start).count(); */
+	/* 	cout<< "Elapsed time: " << duration << " usec"; */
 
 	// delete dynamic variables 
 	for(i=0;i<3;i++){
