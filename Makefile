@@ -30,7 +30,6 @@ OBJ_FILES=$(OBJ_DIR)/main.o \
 	  $(OBJ_DIR)/dist.o \
 	  $(OBJ_DIR)/reciprocal.o \
 	  $(OBJ_DIR)/PM3DEwald.o \
-	  $(OBJ_DIR)/correction2D.o\
 	  $(OBJ_DIR)/func.o
 
 # Make Targets
@@ -55,8 +54,6 @@ $(OBJ_DIR)/reciprocal.o:$(SRC_DIR)/reciprocal.C
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/reciprocal.o $(INC_LIST)
 $(OBJ_DIR)/PM3DEwald.o:$(SRC_DIR)/PM3DEwald.C
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/PM3DEwald.o $(INC_LIST)
-$(OBJ_DIR)/correction2D.o:$(SRC_DIR)/correction2D.cpp
-	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/correction2D.o $(INC_LIST)
 $(OBJ_DIR)/func.o:$(SRC_DIR)/func.cpp
 	$(CC) -DDSFMT_MEXP=19937 -c $^ $(OPTFLAGS) -o  $(OBJ_DIR)/func.o $(INC_LIST)
 
