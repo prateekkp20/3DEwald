@@ -48,5 +48,5 @@ complex<double>B(int m, int n, int K){
 }
 
 double error(double a, double b){
-    return abs(a-b);
+    return abs(a-b)/a;
 }
