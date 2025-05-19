@@ -43,18 +43,18 @@ def replace_line_in_file(file_path, start_words, new_line):
     with open(file_path, 'w') as file:
         file.writelines(modified_lines)                 # Write modified content back to the file
 
-os.system(f"clear && make clean && make")
-os.chdir("run/")
+# os.system(f"clear && make clean && make")
+# os.chdir("run/")
 
-ChargeFilePath = "charge.in" 
-Input_File  = "input.in"
-Ewald_File = "ewald.in"
+# ChargeFilePath = "charge.in" 
+# Input_File  = "input.in"
+# Ewald_File = "ewald.in"
 
-NaCl = [1,-1]
-ChargeFile(ChargeFilePath, NaCl)
-CSV_File = "Output_Final/Exp2/New_NACL.csv"
-POSCAR_File = "POSCAR_Files/Ewald3D/NaCl/POSCAR."
-Total = 101
+# NaCl = [1,-1]
+# ChargeFile(ChargeFilePath, NaCl)
+# CSV_File = "Output_Final/Exp2/New_NACL.csv"
+# POSCAR_File = "POSCAR_Files/Ewald3D/NaCl/POSCAR."
+# Total = 101
 
 # # Just run the Ewald3D files, with simple FFTW
 # with open(CSV_File, 'wb') as file:
@@ -85,37 +85,46 @@ Total = 101
 #             file.write(result.stderr)  # Write stderr in binary format
 
 # Variation of errors and time of PPPM with changing parameters(mesh, order, kvector) with various systems
-with open(CSV_File, 'wb') as file:
-    for i in range(1,Total,8):
+# with open(CSV_File, 'wb') as file:
+#     for i in range(1,Total,8):
 
-        replace_line_in_file(Input_File,"Posfile = ","Posfile = "+POSCAR_File+str(i).zfill(3))
+#         replace_line_in_file(Input_File,"Posfile = ","Posfile = "+POSCAR_File+str(i).zfill(3))
 
-        for gridx in range(16,128,16):
-            for gridy in range(16,128,16):
-                for gridz in range(16,128,16):
+#         for gridx in range(16,128,16):
+#             for gridy in range(16,128,16):
+#                 for gridz in range(16,128,16):
 
-                    replace_line_in_file(Ewald_File,"gx = ","gx = "+str(gridx))
-                    replace_line_in_file(Ewald_File,"gy = ","gy = "+str(gridy))
-                    replace_line_in_file(Ewald_File,"gz = ","gz = "+str(gridz))
+#                     replace_line_in_file(Ewald_File,"gx = ","gx = "+str(gridx))
+#                     replace_line_in_file(Ewald_File,"gy = ","gy = "+str(gridy))
+#                     replace_line_in_file(Ewald_File,"gz = ","gz = "+str(gridz))
 
-                    for orderx in range(2,12,2):
-                        for ordery in range(2,12,2):
-                            for orderz in range(2,12,2):
+#                     for orderx in range(2,12,2):
+#                         for ordery in range(2,12,2):
+#                             for orderz in range(2,12,2):
 
-                                replace_line_in_file(Ewald_File,"nx = ","nx = "+str(orderx))
-                                replace_line_in_file(Ewald_File,"ny = ","ny = "+str(ordery))
-                                replace_line_in_file(Ewald_File,"nz = ","nz = "+str(orderz))
+#                                 replace_line_in_file(Ewald_File,"nx = ","nx = "+str(orderx))
+#                                 replace_line_in_file(Ewald_File,"ny = ","ny = "+str(ordery))
+#                                 replace_line_in_file(Ewald_File,"nz = ","nz = "+str(orderz))
 
-                                for kvecx in range(4,8,1):
-                                    for kvecy in range(4,8,1):
-                                        for kvecz in range(4,8,1):
+#                                 # for kvecx in range(4,8,1):
+#                                 #     for kvecy in range(4,8,1):
+#                                 #         for kvecz in range(4,8,1):
 
-                                            replace_line_in_file(Ewald_File,"kx = ","kx = "+str(kvecx))
-                                            replace_line_in_file(Ewald_File,"ky = ","ky = "+str(kvecy))
-                                            replace_line_in_file(Ewald_File,"kz = ","kz = "+str(kvecz))
+#                                 #             replace_line_in_file(Ewald_File,"kx = ","kx = "+str(kvecx))
+#                                 #             replace_line_in_file(Ewald_File,"ky = ","ky = "+str(kvecy))
+#                                 #             replace_line_in_file(Ewald_File,"kz = ","kz = "+str(kvecz))
 
-                                            for timer in range(0,5):
-                                                result = subprocess.run(["./coulomb.x"], stdout=PIPE, stderr=PIPE)
-                                                file.write(result.stdout)  # Write stdout in binary format
-                                                file.write(result.stderr)  # Write stderr in binary format
+#                                 for timer in range(0,5):
+#                                     result = subprocess.run(["./coulomb.x"], stdout=PIPE, stderr=PIPE)
+#                                     file.write(result.stdout)  # Write stdout in binary format
+#                                     file.write(result.stderr)  # Write stderr in binary format
 
+functionfile = "src/func.cpp"
+outputfile = "terminal.txt" 
+printfile = "coeff.csv"
+
+os.system(f"make clean && make >> {outputfile}")
+os.chdir("run")
+os.system(f"./coulomb.x >> {printfile}")
+os.chdir("..")
+os.system(f"rm {outputfile}")
