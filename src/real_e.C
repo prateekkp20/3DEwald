@@ -15,8 +15,6 @@
     double real_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         int nthreads;
         double sum[NUM_THREADS][PAD],real_energy=0;
-    //     omp_set_num_threads(NUM_THREADS);
-        omp_set_num_threads(thread::hardware_concurrency());
         #pragma omp parallel
         {
             int id, nthrds;
@@ -51,8 +49,6 @@
     double real_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         int nthreads;
         double real_energy=0;
-    // omp_set_num_threads(NUM_THREADS);
-        omp_set_num_threads(thread::hardware_concurrency());
         #pragma omp parallel
         {
             int i, id, nthrds;
@@ -110,8 +106,6 @@
 //* For reduction construct
     double real_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff){
         double real_energy=0;
-        // omp_set_num_threads(NUM_THREADS);
-        omp_set_num_threads(thread::hardware_concurrency());
         #pragma omp parallel for simd schedule(runtime) reduction(+: real_energy)
             for (int i = 0; i < natoms; i++){
                 #pragma omp SIMD

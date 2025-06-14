@@ -38,7 +38,6 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
     p = fftw_plan_dft_3d(Grid[0],Grid[1],Grid[2], in, out, FFTW_FORWARD, FFTW_ESTIMATE);
 
     #if defined ENABLE_OMP
-        omp_set_num_threads(thread::hardware_concurrency());
         #pragma omp parallel for
     #endif
     // Calculating the fractional coordinates
@@ -141,9 +140,6 @@ double PM3DEwald(double *PosIons, double *ion_charges, int natoms, double betaa,
 
                 double norm_FQ=out[temp][REAL]*out[temp][REAL]+out[temp][IMAG]*out[temp][IMAG];
 
-                // energy += norm_FQ*exp(-m2*constant)*norm(B(i,n,Grid)*B(j,n,Grid)*B(k,n,Grid))/m2;
-                // energy += norm_FQ*ExpFactor[tempexpfactor]*norm(B(i,n,Grid)*B(j,n,Grid)*B(k,n,Grid));
-                // energy += norm_FQ*ExpFactor[tempexpfactor]*norm(CoeffX[ic]*CoeffY[jc]*CoeffZ[kc]);
                 energy += norm_FQ*ExpFactor[tempexpfactor];
             }
         }

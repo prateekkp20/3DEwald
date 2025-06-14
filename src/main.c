@@ -308,6 +308,9 @@ int main(int argc, char **argv){
 	double a=5.42/Lmin;
 	double cutoff = Lmin/2;
 
+	// Setting the number of threads for the program
+    omp_set_num_threads(thread::hardware_concurrency());
+
 	/*Useful configuration independent Computations for the reciprocal space summation*/
 	/*Cofficients Bi[mi] of the bspline interpolation*/ //Refer to Essmann et al.
 	CoeffX = new complex<double> [2*Kvec[0]+1];
@@ -384,12 +387,12 @@ int main(int argc, char **argv){
 	}
 	
 	double selfenergy=selfe(n_atomtype, natoms_type, chg, a)*unitzer;
-	cout<<fixed<<setprecision(5)<<"Self Energy: "<<selfenergy<<" Kcal/mol"<<"\n\n";
+	cout<<fixed<<setprecision(8)<<"Self Energy: "<<selfenergy<<" Kcal/mol"<<"\n\n";
 
 	chrono::time_point<std::chrono::system_clock> start1, end1;
 	start1 = chrono::system_clock::now();
 	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell, Kvec)*unitzer;
-	cout<<fixed<<setprecision(5)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
+	cout<<fixed<<setprecision(8)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
 	end1 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds1 = end1- start1;
     time_t end_time1 = std::chrono::system_clock::to_time_t(end1);
@@ -398,7 +401,7 @@ int main(int argc, char **argv){
 	chrono::time_point<std::chrono::system_clock> start2, end2;
 	start2 = chrono::system_clock::now();
 	double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell,cutoff)*unitzer;
-	cout<<fixed<<setprecision(5)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
+	cout<<fixed<<setprecision(8)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
 	end2 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds2 = end2 - start2;
     time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
@@ -407,7 +410,7 @@ int main(int argc, char **argv){
 	chrono::time_point<std::chrono::system_clock> start3, end3;
 	start3 = chrono::system_clock::now();
 	double recienergy_bs=PM3DEwald(PosIons, ion_charges, natoms, a, boxcell, Grid, Kvec, Order)*unitzer;
-	cout<<fixed<<setprecision(5)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n";
+	cout<<fixed<<setprecision(8)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n";
 	end3 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds3 = end3 - start3;
     time_t end_time3 = std::chrono::system_clock::to_time_t(end3);

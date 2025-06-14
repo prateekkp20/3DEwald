@@ -57,8 +57,6 @@ const complex<double> t(0,1);
                     double sg_real=0;
                     double sg_img=0;
                     double G[3]={2*M_PI*kx/box[0][0], 2*M_PI*ky/box[1][1], 2*M_PI*kz/box[2][2]};
-                    omp_set_num_threads(thread::hardware_concurrency());
-                    // omp_set_num_threads(10);
                     #pragma omp parallel for schedule(dynamic) reduction(+: sg_real)
                         for (int  i = 0; i < natoms; i++){
                             double G_dot_r=G[0]*PosIons[3*i]+G[1]*PosIons[3*i+1]+G[2]*PosIons[3*i+2];
@@ -87,10 +85,7 @@ const complex<double> t(0,1);
     /*There is no workaround for the complex reduction, we have to do the ugly work*/
     double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int *K){
         double reci_energy=0;
-        // omp_set_num_threads(NUM_THREADS);
-        omp_set_num_threads(thread::hardware_concurrency());
         #pragma omp parallel for schedule(runtime) reduction(+: reci_energy) collapse(3)
-        // #pragma omp parallel for schedule(runtime) reduction(+: reci_energy)
         for (int kx = -K[0]; kx < K[0]+1; kx++){
             for (int ky = -K[1]; ky < K[1]+1; ky++){
                 for (int kz = -K[2]; kz < K[2]+1; kz++){
@@ -119,7 +114,6 @@ const complex<double> t(0,1);
     double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int *K){
         int nthreads;
         double reci_energy=0;
-        omp_set_num_threads(thread::hardware_concurrency());
         for (int kx = -K[0]; kx < K[0]+1; kx++){
             for (int ky = -K[1]; ky < K[1]+1; ky++){
                 for (int kz = -K[2]; kz < K[2]+1; kz++){
