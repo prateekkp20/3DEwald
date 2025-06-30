@@ -4,7 +4,7 @@
 
 #include "libinclude.h" 
 
-double dist(double *PosIons, int atom1, int atom2, double **box){
+double dist(double* __restrict__ PosIons, int atom1, int atom2, double** __restrict__ box){
 
 	double Dx, Dy, Dz;
 	double Dx1, Dy1, Dz1;

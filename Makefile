@@ -1,6 +1,6 @@
 CC = /usr/bin/g++	
 DEBUGFLAGS = -Wall
-OPTFLAGS = -O3 -fopenmp -pthread
+OPTFLAGS = -O3 -mavx2 -march=native -ftree-vectorize -ftree-vectorizer-verbose=1 -fopenmp -pthread
 FFTFLAGS = -lfftw3_threads -lfftw3 -lm -lfftw3_omp
 
 RUN_DIR=./run

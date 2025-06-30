@@ -53,7 +53,7 @@ double selfe(int n_atomtype, int *natoms_type, float *chargs, double betaa);
 
 double real_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, double cutoff);
 
-double dist(double *PosIons, int atom1, int atom2, double **box);
+double dist(double* __restrict__ PosIons, int atom1, int atom2, double** __restrict__ box);
 
 double reci_energy(double *PosIons, double *ion_charges, int natoms, double betaa, double **box, int *K);
 
