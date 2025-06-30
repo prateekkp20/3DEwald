@@ -12,6 +12,11 @@ double G[3][3];
 double volume;
 complex<double> *CoeffX,*CoeffY,*CoeffZ;
 
+#define SELF 1
+#define REAL 1
+#define RECIPROCAL_N2 1
+#define RECIPROCAL_SPME 1
+
 int main(int argc, char **argv){
 
 	string filename;
@@ -362,7 +367,6 @@ int main(int argc, char **argv){
 
 	/*This would be the constant term to be multplied with each reciprocal sum value*/
 	/* Exp(-|G|)/|G| or the screening function term in the reciprocal loop for direct ewald*/
-	int Kvec2[3] = {6,6,6};
 	PreExpFactor = new double [(2*Kvec[0]+1)*(2*Kvec[1]+1)*(2*Kvec[2]+1)];
 	#pragma omp parallel for schedule(runtime) collapse(3)
 	for (int i = -Kvec[0]; i < Kvec[0]+1; i++){
@@ -386,35 +390,43 @@ int main(int argc, char **argv){
 		}
 	}
 	
-	double selfenergy=selfe(n_atomtype, natoms_type, chg, a)*unitzer;
-	cout<<fixed<<setprecision(8)<<"Self Energy: "<<selfenergy<<" Kcal/mol"<<"\n\n";
+	#if defined SELF
+		double selfenergy=selfe(n_atomtype, natoms_type, chg, a)*unitzer;
+		cout<<fixed<<setprecision(8)<<"Self Energy: "<<selfenergy<<" Kcal/mol"<<"\n\n";
+	#endif
+	
+	#if defined RECIPROCAL_N2
+		chrono::time_point<std::chrono::system_clock> start1, end1;
+		start1 = chrono::system_clock::now();
+		double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell, Kvec)*unitzer;
+		cout<<fixed<<setprecision(8)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
+		end1 = chrono::system_clock::now();
+		chrono::duration<double> elapsed_seconds1 = end1- start1;
+		time_t end_time1 = std::chrono::system_clock::to_time_t(end1);
+		cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds1.count() << " sec\n\n";
+	#endif
+	
+	#if defined REAL
+		chrono::time_point<std::chrono::system_clock> start2, end2;
+		start2 = chrono::system_clock::now();
+		double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell,cutoff)*unitzer;
+		cout<<fixed<<setprecision(8)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
+		end2 = chrono::system_clock::now();
+		chrono::duration<double> elapsed_seconds2 = end2 - start2;
+		time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
+		cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds2.count() << " sec\n\n";
+	#endif
 
-	chrono::time_point<std::chrono::system_clock> start1, end1;
-	start1 = chrono::system_clock::now();
-	double recienergy=reci_energy(PosIons, ion_charges, natoms, a, boxcell, Kvec)*unitzer;
-	cout<<fixed<<setprecision(8)<<"Reciprocal Energy: "<<recienergy<<" Kcal/mol"<<"\n";
-	end1 = chrono::system_clock::now();
-	chrono::duration<double> elapsed_seconds1 = end1- start1;
-    time_t end_time1 = std::chrono::system_clock::to_time_t(end1);
-	cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds1.count() << " sec\n\n";
-
-	chrono::time_point<std::chrono::system_clock> start2, end2;
-	start2 = chrono::system_clock::now();
-	double realenergy=real_energy(PosIons, ion_charges, natoms, a, boxcell,cutoff)*unitzer;
-	cout<<fixed<<setprecision(8)<<"Real Energy: "<<realenergy<<" Kcal/mol"<<"\n";
-	end2 = chrono::system_clock::now();
-	chrono::duration<double> elapsed_seconds2 = end2 - start2;
-    time_t end_time2 = std::chrono::system_clock::to_time_t(end2);
-	cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds2.count() << " sec\n\n";
-
-	chrono::time_point<std::chrono::system_clock> start3, end3;
-	start3 = chrono::system_clock::now();
-	double recienergy_bs=PM3DEwald(PosIons, ion_charges, natoms, a, boxcell, Grid, Kvec, Order)*unitzer;
-	cout<<fixed<<setprecision(8)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n";
-	end3 = chrono::system_clock::now();
-	chrono::duration<double> elapsed_seconds3 = end3 - start3;
-    time_t end_time3 = std::chrono::system_clock::to_time_t(end3);
-	cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds3.count() << " sec\n\n";
+	#if defined RECIPROCAL_SPME
+		chrono::time_point<std::chrono::system_clock> start3, end3;
+		start3 = chrono::system_clock::now();
+		double recienergy_bs=PM3DEwald(PosIons, ion_charges, natoms, a, boxcell, Grid, Kvec, Order)*unitzer;
+		cout<<fixed<<setprecision(8)<<"Reciprocal Energy FFTW: "<<recienergy_bs<<" Kcal/mol"<<"\n";
+		end3 = chrono::system_clock::now();
+		chrono::duration<double> elapsed_seconds3 = end3 - start3;
+		time_t end_time3 = std::chrono::system_clock::to_time_t(end3);
+		cout<<fixed<<setprecision(8)<< "Elapsed time: " << elapsed_seconds3.count() << " sec\n\n";
+	#endif
 
 	/* using std::chrono::duration_cast; */
 	/* using HR = std::chrono::high_resolution_clock; */
